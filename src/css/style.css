@@ -1,4 +1,4 @@
-.pdf-viewer-modal {
+.pdf-visualizer-modal {
   font-family: inherit;
   position: fixed;
   top: 0;
@@ -12,7 +12,7 @@
   z-index: 1000;
 }
 
-.pdf-viewer-content {
+.pdf-visualizer-content {
   background-color: white;
   padding: 20px;
   border-radius: 8px;
@@ -24,7 +24,7 @@
   flex-direction: column;
 }
 
-.pdf-viewer-header {
+.pdf-visualizer-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -38,7 +38,7 @@
   cursor: pointer;
 }
 
-.pdf-viewer-controls {
+.pdf-visualizer-controls {
   display: flex;
   justify-content: space-between;
   align-items: center;

@@ -21,6 +21,7 @@ class PDFViewer {
     this.startY = 0;
     this.scrollLeft = 0;
     this.scrollTop = 0;
+    this.previousFocusedElement = null;
     GlobalWorkerOptions.workerSrc = new URL(
       'pdfjs-dist/build/pdf.worker.min.mjs',
       import.meta.url,
@@ -30,14 +31,18 @@ class PDFViewer {
   async init() {
     // Crear el contenedor principal
     this.container = document.createElement('div');
-    this.container.className = 'pdf-viewer-modal';
+    this.container.className = 'pdf-visualizer-modal';
+    this.container.setAttribute('tabindex', '-1');
+    this.container.setAttribute('role', 'dialog');
+    this.container.setAttribute('aria-modal', 'true');
+    this.container.setAttribute('aria-labelledby', 'pdf-visualizer');
     this.container.innerHTML = `
-        <div class="pdf-viewer-content">
-          <div class="pdf-viewer-header">
+        <div class="pdf-visualizer-content">
+          <div class="pdf-visualizer-header">
             <h2>Visor de PDF</h2>
-            <button id="close-btn-pdf-viewer" class="button-control">${feather.icons.x.toSvg({ width: 15, height: 15 })}</button>
+            <button id="close-btn-pdf-visualizer" class="button-control">${feather.icons.x.toSvg({ width: 15, height: 15 })}</button>
           </div>
-          <div class="pdf-viewer-controls">
+          <div class="pdf-visualizer-controls">
             <div>
               <button id="prev" class="button-control" disabled>${feather.icons["chevrons-left"].toSvg({ width: 15, height: 15 })}</button>
               <button id="next" class="button-control" disabled>${feather.icons["chevrons-right"].toSvg({ width: 15, height: 15 })}</button>
@@ -62,7 +67,7 @@ class PDFViewer {
       `;
 
     // Configurar eventos
-    this.container.querySelector('#close-btn-pdf-viewer').addEventListener('click', () => this.close());
+    this.container.querySelector('#close-btn-pdf-visualizer').addEventListener('click', () => this.close());
     this.container.querySelector('#prev').addEventListener('click', () => this.onPrevPage());
     this.container.querySelector('#next').addEventListener('click', () => this.onNextPage());
     this.container.querySelector('#zoomIn').addEventListener('click', () => this.onZoomIn());
@@ -80,6 +85,50 @@ class PDFViewer {
     pdfContainer.addEventListener('mousemove', (e) => this.drag(e));
     pdfContainer.addEventListener('mouseup', () => this.stopDragging());
     pdfContainer.addEventListener('mouseleave', () => this.stopDragging());
+
+    const pdfContent = this.container.children[0];
+
+    this.container.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (!pdfContent) return;
+
+      const isClickInsidePdfContent = pdfContent.contains(e.target);
+      if (!isClickInsidePdfContent) {
+        this.close();
+      }
+    });
+
+    // Configurar funcionalidad de captura de foco
+    this.trapFocus();
+  }
+
+  trapFocus() {
+    const focusableElements = this.container.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+
+    const firstFocusableElement = focusableElements[0];
+    const lastFocusableElement = focusableElements[focusableElements.length - 1];
+
+    this.container.addEventListener('keydown', (e) => {
+      if (e.key === 'Tab') {
+        const isTabPressed = e.key === 'Tab';
+
+        if (!isTabPressed) return;
+
+        if (e.shiftKey) {
+          console.log('Shift + Tab');
+          if (document.activeElement === firstFocusableElement) {
+            lastFocusableElement.focus();
+            e.preventDefault();
+          }
+        } else {
+          console.log('Tab');
+          if (document.activeElement === lastFocusableElement) {
+            firstFocusableElement.focus();
+            e.preventDefault();
+          }
+        }
+      }
+    });
   }
 
   /**
@@ -276,6 +325,9 @@ class PDFViewer {
    * @returns {Promise<void>} - Una promesa que se resuelve una vez que el PDF se ha cargado y renderizado.
    */
   async open(url) {
+    this.previousFocusedElement = document.activeElement;
+    this.container.setAttribute('aria-hidden', 'false');
+    this.container.focus();
     document.body.appendChild(this.container);
     await this.loadPDF(url);
   }
@@ -302,11 +354,13 @@ class PDFViewer {
     this.canvas.height = 0
     this.container.querySelector('#preloader').style.display = 'flex';
     this.updateZoomInfo();
-    this.container.querySelector('#page-info').innerHTML  = 'Página: <span id="page_num"></span> / <span id="page_count"></span>'
+    this.container.querySelector('#page-info').innerHTML = 'Página: <span id="page_num"></span> / <span id="page_count"></span>'
     this.container.querySelector('#prev').disabled = true;
     this.container.querySelector('#next').disabled = true;
     this.container.querySelector('#zoomIn').disabled = true;
     this.container.querySelector('#zoomOut').disabled = true;
+    this.container.setAttribute('aria-hidden', 'true');
+    this.previousFocusedElement?.focus();
 
     if (this.pdfDoc) {
       this.pdfDoc.destroy();
