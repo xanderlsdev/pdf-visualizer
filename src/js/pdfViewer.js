@@ -8,6 +8,9 @@ class PDFViewer {
   constructor() {
     this.url = '';
     this.container = null;
+    this.title = 'PDF Visualizer';
+    this.titlePageNumber = 'Page';
+    this.titleLoading = 'Loading PDF...';
     this.pdfDoc = null;
     this.page = null;
     this.pageNum = 1;
@@ -39,14 +42,14 @@ class PDFViewer {
     this.container.innerHTML = `
         <div class="pdf-visualizer-content">
           <div class="pdf-visualizer-header">
-            <h2>Visor de PDF</h2>
+            <h2>${this.title}</h2>
             <button id="close-btn-pdf-visualizer" class="button-control">${feather.icons.x.toSvg({ width: 15, height: 15 })}</button>
           </div>
           <div class="pdf-visualizer-controls">
             <div>
               <button id="prev" class="button-control" disabled>${feather.icons["chevrons-left"].toSvg({ width: 15, height: 15 })}</button>
               <button id="next" class="button-control" disabled>${feather.icons["chevrons-right"].toSvg({ width: 15, height: 15 })}</button>
-              <span id="page-info">Página: <span id="page_num"></span> / <span id="page_count"></span></span>
+              <span id="page-info">${this.titlePageNumber}: <span id="page_num"></span> / <span id="page_count"></span></span>
             </div>
             <div class="zoom-controls">
               <button id="zoomOut" class="button-control" disabled>${feather.icons.minus.toSvg({ width: 15, height: 15 })}</button>
@@ -60,7 +63,7 @@ class PDFViewer {
             <canvas id="the-canvas"></canvas>
             <div id="preloader">
               <div class="spinner"></div>
-              Cargando PDF...
+              ${this.titleLoading}
             </div>
           </div>
         </div>
