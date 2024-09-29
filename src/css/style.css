@@ -10,25 +10,37 @@
   justify-content: center;
   align-items: center;
   z-index: 1000;
+  cursor: pointer;
 }
 
 .pdf-visualizer-content {
+  position: absolute;
   background-color: white;
-  padding: 20px;
   border-radius: 8px;
-  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
   width: 90%;
   max-width: 800px;
   height: 90%;
   display: flex;
   flex-direction: column;
+  cursor: default;
+  animation: showCustomModal 0.3s;
+  -webkit-animation: showCustomModal 0.3s;
+}
+
+.pdf-visualizer-content.pdf-visualizer-content-closed {
+  -webkit-animation: hideCustomModal 0.3s forwards;
+  animation: hideCustomModal 0.3s forwards;
 }
 
 .pdf-visualizer-header {
+  background-color: rgba(0, 0, 0, 0.07);
+  border-bottom: 1px solid #dee2e6;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 10px;
+  padding: 10px 20px;
+  cursor: move;
 }
 
 .close-btn {
@@ -43,7 +55,7 @@
   justify-content: space-between;
   align-items: center;
   flex-wrap: wrap;
-  margin-bottom: 10px;
+  padding: 20px;
 }
 
 .button-control {
@@ -76,6 +88,7 @@
   background-color: #ddd;
   position: relative;
   cursor: grab;
+  margin: 0px 20px;
 }
 
 #the-canvas {
@@ -107,6 +120,83 @@
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@-webkit-keyframes showCustomModal {
+  0% {
+    -webkit-transform: scale(0.7);
+    transform: scale(0.7);
+  }
+
+  45% {
+    -webkit-transform: scale(1.05);
+    transform: scale(1.05);
+  }
+
+  80% {
+    -webkit-transform: scale(0.95);
+    transform: scale(0.95);
+  }
+
+  100% {
+    -webkit-transform: scale(1);
+    transform: scale(1);
+  }
+}
+
+@keyframes showCustomModal {
+  0% {
+    -webkit-transform: scale(0.7);
+    transform: scale(0.7);
+  }
+
+  45% {
+    -webkit-transform: scale(1.05);
+    transform: scale(1.05);
+  }
+
+  80% {
+    -webkit-transform: scale(0.95);
+    transform: scale(0.95);
+  }
+
+  100% {
+    -webkit-transform: scale(1);
+    transform: scale(1);
+  }
+}
+
+@-webkit-keyframes hideCustomModal {
+  0% {
+      -webkit-transform: scale(1);
+      transform: scale(1);
+      opacity: 1;
+  }
+
+  100% {
+      -webkit-transform: scale(0.5);
+      transform: scale(0.5);
+      opacity: 0;
+  }
+}
+
+@keyframes hideCustomModal {
+  0% {
+      -webkit-transform: scale(1);
+      transform: scale(1);
+      opacity: 1;
+  }
+
+  100% {
+      -webkit-transform: scale(0.5);
+      transform: scale(0.5);
+      opacity: 0;
+  }
 }
