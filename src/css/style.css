@@ -42,7 +42,31 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
   margin-bottom: 10px;
+}
+
+.button-control {
+  background-color: #4CAF50;
+  border: none;
+  color: white;
+  padding: 10px 20px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+  margin: 4px 2px;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.button-control:hover {
+  background-color: #45a049;
+}
+
+.button-control:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
 }
 
 #pdf-container {
@@ -85,25 +109,4 @@
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
-}
-
-button {
-  background-color: #4CAF50;
-  border: none;
-  color: white;
-  padding: 10px 20px;
-  text-align: center;
-  text-decoration: none;
-  display: inline-block;
-  font-size: 16px;
-  margin: 4px 2px;
-  cursor: pointer;
-  border-radius: 4px;
-}
-button:hover {
-  background-color: #45a049;
-}
-button:disabled {
-  background-color: #cccccc;
-  cursor: not-allowed;
 }

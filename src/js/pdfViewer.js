@@ -6,10 +6,10 @@ import '../css/style.css';
 
 class PDFViewer {
   constructor() {
-    this.loadingTask = true;
     this.url = '';
     this.container = null;
     this.pdfDoc = null;
+    this.page = null;
     this.pageNum = 1;
     this.pageRendering = false;
     this.pageNumPending = null;
@@ -35,19 +35,20 @@ class PDFViewer {
         <div class="pdf-viewer-content">
           <div class="pdf-viewer-header">
             <h2>Visor de PDF</h2>
-            <button id="close-btn-pdf-viewer">${feather.icons.x.toSvg({ width: 15, height: 15 })}</button>
+            <button id="close-btn-pdf-viewer" class="button-control">${feather.icons.x.toSvg({ width: 15, height: 15 })}</button>
           </div>
           <div class="pdf-viewer-controls">
             <div>
-              <button id="prev">${feather.icons["chevrons-left"].toSvg({ width: 15, height: 15 })}</button>
-              <button id="next">${feather.icons["chevrons-right"].toSvg({ width: 15, height: 15 })}</button>
+              <button id="prev" class="button-control" disabled>${feather.icons["chevrons-left"].toSvg({ width: 15, height: 15 })}</button>
+              <button id="next" class="button-control" disabled>${feather.icons["chevrons-right"].toSvg({ width: 15, height: 15 })}</button>
               <span id="page-info">Página: <span id="page_num"></span> / <span id="page_count"></span></span>
             </div>
             <div class="zoom-controls">
-              <button id="zoomOut">${feather.icons.minus.toSvg({ width: 15, height: 15 })}</button>
+              <button id="zoomOut" class="button-control" disabled>${feather.icons.minus.toSvg({ width: 15, height: 15 })}</button>
               <span id="zoom-info">100%</span>
-              <button id="zoomIn">${feather.icons.plus.toSvg({ width: 15, height: 15 })}</button>
-              <button id="print">${feather.icons.printer.toSvg({ width: 15, height: 15 })}</button>
+              <button id="zoomIn" class="button-control" disabled>${feather.icons.plus.toSvg({ width: 15, height: 15 })}</button>
+              <button id="donwload" class="button-control">${feather.icons.download.toSvg({ width: 15, height: 15 })}</button>
+              <button id="print" class="button-control">${feather.icons.printer.toSvg({ width: 15, height: 15 })}</button>
             </div>
           </div>
           <div id="pdf-container">
@@ -66,6 +67,7 @@ class PDFViewer {
     this.container.querySelector('#next').addEventListener('click', () => this.onNextPage());
     this.container.querySelector('#zoomIn').addEventListener('click', () => this.onZoomIn());
     this.container.querySelector('#zoomOut').addEventListener('click', () => this.onZoomOut());
+    this.container.querySelector('#donwload').addEventListener('click', () => this.onDownload());
     this.container.querySelector('#print').addEventListener('click', () => this.onPrint());
 
     // Configurar canvas y contexto
@@ -87,14 +89,14 @@ class PDFViewer {
    */
   async loadPDF(url) {
     try {
+      this.pageRendering = true;
       this.url = url;
       const loadingTask = getDocument(this.url);
       const pdfDoc_ = await loadingTask.promise;
       this.pdfDoc = pdfDoc_;
       this.container.querySelector('#page_count').textContent = this.pdfDoc.numPages;
       this.container.querySelector('#preloader').style.display = 'none';
-      this.renderPage(this.pageNum);
-      this.loadingTask = false;
+      await this.renderPage(this.pageNum);
     } catch (error) {
       console.error('Error al cargar el PDF:', error);
       this.container.querySelector('#preloader').textContent = 'Error al cargar el PDF. Por favor, intente de nuevo.';
@@ -106,27 +108,25 @@ class PDFViewer {
    * @param {number} num - El número de la página a renderizar.
    * @returns {void}
    */
-  renderPage(num) {
-    this.pageRendering = true;
-    this.pdfDoc.getPage(num).then((page) => {
-      const viewport = page.getViewport({ scale: this.scale });
-      this.canvas.height = viewport.height;
-      this.canvas.width = viewport.width;
+  async renderPage(num) {
+    this.page = await this.pdfDoc.getPage(num);
+    const viewport = this.page.getViewport({ scale: this.scale });
+    this.canvas.height = viewport.height;
+    this.canvas.width = viewport.width;
 
-      const renderContext = {
-        canvasContext: this.ctx,
-        viewport: viewport
-      };
-      const renderTask = page.render(renderContext);
+    const renderContext = {
+      canvasContext: this.ctx,
+      viewport: viewport
+    };
+    const renderTask = this.page.render(renderContext);
 
-      renderTask.promise.then(() => {
-        this.pageRendering = false;
-        if (this.pageNumPending !== null) {
-          this.renderPage(this.pageNumPending);
-          this.pageNumPending = null;
-        }
-      });
-    });
+    await renderTask.promise;
+
+    this.pageRendering = false;
+    if (this.pageNumPending !== null) {
+      this.renderPage(this.pageNumPending);
+      this.pageNumPending = null;
+    }
 
     this.container.querySelector('#page_num').textContent = num;
     this.updateUI();
@@ -147,21 +147,23 @@ class PDFViewer {
   }
 
   onPrevPage() {
-    if (this.loadingTask) return;
+    if (this.pageRendering) return;
+
     if (this.pageNum <= 1) return;
     this.pageNum--;
     this.queueRenderPage(this.pageNum);
   }
 
   onNextPage() {
-    if (this.loadingTask) return;
+    if (this.pageRendering) return;
+
     if (this.pageNum >= this.pdfDoc.numPages) return;
     this.pageNum++;
     this.queueRenderPage(this.pageNum);
   }
 
   onZoomIn() {
-    if (this.loadingTask) return;
+    if (this.pageRendering) return;
     if (this.scale < 3.0) {
       this.scale = Math.min(3.0, this.scale + 0.1);
       this.queueRenderPage(this.pageNum);
@@ -170,7 +172,8 @@ class PDFViewer {
   }
 
   onZoomOut() {
-    if (this.loadingTask) return;
+    if (this.pageRendering) return;
+
     if (this.scale > 0.5) {
       this.scale = Math.max(0.5, this.scale - 0.1);
       this.queueRenderPage(this.pageNum);
@@ -183,13 +186,58 @@ class PDFViewer {
   }
 
   onPrint() {
-    if (this.loadingTask) return;
+    if (this.pageRendering) return;
+
     printJS({
       printable: this.url,
       type: 'pdf',
       showModal: true,
       modalMessage: 'Preparando documento para imprimir...'
     });
+  }
+
+  async onDownload() {
+    if (this.pageRendering) return;
+
+    try {
+      // Mostrar un indicador de carga
+      const downloadButton = this.container.querySelector('#donwload');
+      const originalContent = downloadButton.innerHTML;
+      downloadButton.innerHTML = `${feather.icons.loader.toSvg({ width: 15, height: 15 })}`;
+      downloadButton.disabled = true;
+
+      // Fetch el PDF como un blob
+      const response = await fetch(this.url);
+      const pdfBlob = await response.blob();
+
+      // Crear un objeto URL temporal
+      const blobUrl = window.URL.createObjectURL(pdfBlob);
+
+      // Crear un enlace temporal y activar la descarga
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.download = this.getFileNameFromUrl(this.url) || 'documento.pdf';
+      link.click();
+
+      // Limpiar el objeto URL temporal
+      window.URL.revokeObjectURL(blobUrl);
+
+      // Restaurar el botón
+      downloadButton.innerHTML = originalContent;
+      downloadButton.disabled = false;
+    } catch (error) {
+      console.error(error);
+
+      const downloadButton = this.container.querySelector('#donwload');
+      downloadButton.innerHTML = `${feather.icons.download.toSvg({ width: 15, height: 15 })}`;
+      downloadButton.disabled = false;
+    }
+  }
+
+  getFileNameFromUrl(url) {
+    const urlParts = url.split('/');
+    const fileName = urlParts[urlParts.length - 1];
+    return fileName.split('?')[0] || null; // Elimina cualquier parámetro de consulta
   }
 
   updateUI() {
@@ -224,10 +272,12 @@ class PDFViewer {
 
   /**
    * Abre el visor PDF agregando el contenedor al cuerpo del documento.
-   * @returns {void}
+   * @param {string} url - La URL del PDF a cargar.
+   * @returns {Promise<void>} - Una promesa que se resuelve una vez que el PDF se ha cargado y renderizado.
    */
-  open() {
+  async open(url) {
     document.body.appendChild(this.container);
+    await this.loadPDF(url);
   }
 
   /**
@@ -235,7 +285,32 @@ class PDFViewer {
    * @returns {void}
    */
   close() {
+    if (this.pageRendering) return;
+
     document.body.removeChild(this.container);
+
+    this.url = '';
+    this.pageNum = 1;
+    this.pageNumPending = null;
+    this.scale = 1.0;
+    this.isDragging = false;
+    this.startX = 0;
+    this.startY = 0;
+    this.scrollLeft = 0;
+    this.scrollTop = 0;
+    this.canvas.width = 0
+    this.canvas.height = 0
+    this.container.querySelector('#preloader').style.display = 'flex';
+    this.updateZoomInfo();
+    this.container.querySelector('#page-info').innerHTML  = 'Página: <span id="page_num"></span> / <span id="page_count"></span>'
+    this.container.querySelector('#prev').disabled = true;
+    this.container.querySelector('#next').disabled = true;
+    this.container.querySelector('#zoomIn').disabled = true;
+    this.container.querySelector('#zoomOut').disabled = true;
+
+    if (this.pdfDoc) {
+      this.pdfDoc.destroy();
+    }
   }
 }
 

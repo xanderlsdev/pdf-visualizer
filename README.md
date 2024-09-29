@@ -1,6 +1,6 @@
 # PDFVisualizer
 
-A modular PDF viewer that works as a modal in various JavaScript frameworks.
+A modular PDF visualizer that works as a modal in various JavaScript frameworks.
 
 ## Installation
 
@@ -15,9 +15,7 @@ npm install pdf-visualizer
 ```javascript
 import PDFViewer from "pdf-visualizer";
 
-PDFViewer.open();
-
-await PDFViewer.loadPDF(
+await PDFViewer.open(
   "https://api.syssoftintegra.com/servicios/leatsac/api/reporte/facturacion/venta/pdf/a4/VT0593"
 );
 ```
@@ -41,12 +39,9 @@ function PDFViewerComponent({ url }) {
     };
   }, [url]);
 
-  const openViewer = () => {
+  const openViewer = async () => {
     if (viewerRef.current) {
-      viewerRef.current.open();
-      viewerRef.current.loadPDF(
-        "https://api.syssoftintegra.com/servicios/leatsac/api/reporte/facturacion/venta/pdf/a4/VT0593"
-      );
+      await viewerRef.current.open(url);
     }
   };
 
@@ -81,11 +76,8 @@ export default {
   },
   methods: {
     openViewer() {
-      if (this.viewer) {
-        this.viewer.open();
-        this.viewer.loadPDF(
-          "https://api.syssoftintegra.com/servicios/leatsac/api/reporte/facturacion/venta/pdf/a4/VT0593"
-        );
+      async if (this.viewer) {
+        await this.viewer.open(this.url);
       }
     },
   },
@@ -117,12 +109,9 @@ export class PDFViewerComponent implements OnInit, OnDestroy {
     }
   }
 
-  openViewer() {
+  async openViewer() {
     if (this.viewer) {
-      this.viewer.open();
-      this.viewer.loadPDF(
-        "https://api.syssoftintegra.com/servicios/leatsac/api/reporte/facturacion/venta/pdf/a4/VT0593"
-      );
+      await this.viewer.open(this.url);
     }
   }
 }
