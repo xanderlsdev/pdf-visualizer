@@ -159,7 +159,7 @@ class PDFViewer {
     this.modal.innerHTML = `
         <div class="pdf-visualizer-content" style="${styleContent}">
           <div class="pdf-visualizer-header" style="${styleHeader}">
-            <h1 style="${styleTextTitle}">${this.title}</h1>
+            <h2 style="${styleTextTitle}">${this.title}</h2>
             <button id="close-btn-pdf-visualizer" class="button-control" style="${styleButtonClose}">${feather.icons.x.toSvg({ width: 15, height: 15 })}</button>
           </div>
           <div class="pdf-visualizer-controls" style="${styleControls}">
