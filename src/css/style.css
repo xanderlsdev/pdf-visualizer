@@ -29,8 +29,8 @@
 }
 
 .pdf-visualizer-content.pdf-visualizer-content-closed {
-  -webkit-animation: hideCustomModal 0.3s forwards;
-  animation: hideCustomModal 0.3s forwards;
+  -webkit-animation: hideCustomModal 0.2s forwards;
+  animation: hideCustomModal 0.2s forwards;
 }
 
 .pdf-visualizer-header {
@@ -41,13 +41,6 @@
   align-items: center;
   padding: 10px 20px;
   cursor: move;
-}
-
-.close-btn {
-  background: none;
-  border: none;
-  font-size: 24px;
-  cursor: pointer;
 }
 
 .pdf-visualizer-controls {
@@ -81,7 +74,12 @@
   cursor: not-allowed;
 }
 
-#pdf-container {
+.button-control:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(66, 79, 94, 0.5);
+}
+
+#pdf-body {
   overflow: auto;
   flex-grow: 1;
   border: 1px solid #ddd;
@@ -117,6 +115,10 @@
   height: 40px;
   animation: spin 1s linear infinite;
   margin-right: 10px;
+}
+
+.animated-spin {
+  animation: spin 3s linear infinite;
 }
 
 @keyframes spin {

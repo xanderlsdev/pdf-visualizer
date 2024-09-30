@@ -30,6 +30,7 @@ class PDFViewer {
    */
   constructor() {
     this.url = '';
+    this.modal = null,
     this.container = null;
     this.title = 'PDF Visualizer';
     this.titlePageNumber = 'Page';
@@ -51,9 +52,15 @@ class PDFViewer {
     this.scrollLeft = 0;
     this.scrollTop = 0;
     this.previousFocusedElement = null;
+    this.isOpen = false;
     this.isClosing = false;
     this.isDownloading = false;
     this.isPrinting = false;
+    this.isMoveable = true;
+    this.isClosingOnEscape = true;
+    this.isClosingOnClickOutside = true;
+    this.isDownloadingOnClick = true;
+    this.isPrintingOnClick = true;
     GlobalWorkerOptions.workerSrc = new URL(
       'pdfjs-dist/build/pdf.worker.min.mjs',
       import.meta.url,
@@ -61,55 +68,115 @@ class PDFViewer {
   }
 
   /**
-   * Inicializa el visor de PDF creando la interfaz de usuario y configurando 
-   * los eventos necesarios para la interacción.
+   * Inicializa el visualizador de PDF con configuraciones personalizadas y
+   * crea el contenedor modal con controles de navegación, zoom, descarga e impresión.
+   *
+   * @param {Object} options - Opciones para personalizar el visualizador de PDF.
+   * @param {string} [options.url] - URL del archivo PDF a cargar.
+   * @param {string} [options.title='PDF Visualizer'] - El título del visor de PDF.
+   * @param {string} [options.titlePageNumber='Page'] - El texto que se muestra antes del número de página.
+   * @param {string} [options.titleLoading='Loading PDF...'] - El mensaje que se muestra durante la carga del PDF.
+   * @param {boolean} [options.isMoveable=true] - Si el modal es movible arrastrando la cabecera.
+   * @param {boolean} [options.isClosingOnEscape=true] - Si el modal se puede cerrar con la tecla Escape.
+   * @param {boolean} [options.isClosingOnClickOutside=true] - Si el modal se cierra al hacer clic fuera del contenido.
+   * @param {boolean} [options.isDownloadingOnClick=true] - Si el botón de descarga del PDF está habilitado.
+   * @param {boolean} [options.isPrintingOnClick=true] - Si el botón de impresión del PDF está habilitado.
+   * @param {string} [options.styleContent=''] - Estilo personalizado para el contenedor del modal.
+   * @param {string} [options.styleHeader=''] - Estilo personalizado para el encabezado del modal.
+   * @param {string} [options.styleControls=''] - Estilo personalizado para los controles del modal.
+   * @param {string} [options.styleBody=''] - Estilo personalizado para el cuerpo del modal.
+   * @param {string} [options.styleTextTitle=''] - Estilo personalizado para el título del modal.
+   * @param {string} [options.styleTextPageNumber=''] - Estilo personalizado para el número de página del modal.
+   * @param {string} [options.stylTextZoomInfo=''] - Estilo personalizado para el texto de información de zoom del modal.
+   * @param {string} [options.styleTextLoading=''] - Estilo personalizado para el texto de carga del modal.
+   * @param {string} [options.styleButtonClose=''] - Estilo personalizado para el botón de cierre del modal.
+   * @param {string} [options.styleButtonPrev=''] - Estilo personalizado para el botón de navegación hacia atrás del modal.
+   * @param {string} [options.styleButtonNext=''] - Estilo personalizado para el botón de navegación hacia adelante del modal.
+   * @param {string} [options.styleButtonZoomIn=''] - Estilo personalizado para el botón de zoom en del modal.
+   * @param {string} [options.styleButtonZoomOut=''] - Estilo personalizado para el botón de zoom out del modal.
+   * @param {string} [options.styleButtonDownload=''] - Estilo personalizado para el botón de descarga del modal.
+   * @param {string} [options.styleButtonPrint=''] - Estilo personalizado para el botón de impresión del modal.
+   * @param {Function} [options.onBeforeOpen] - Función a ejecutar antes de que el PDF se haya cargado y el visor se haya abierto.
+   * @param {Function} [options.onAfterOpen] - Función a ejecutar después de que el PDF se haya cargado y el visor se haya abierto.
+   * @param {Function} [options.onBeforeClose] - Función a ejecutar antes de que el PDF se cierre.
+   * @param {Function} [options.onAfterClose] - Función a ejecutar después de que el PDF se cierre.
    * 
-   * Este método realiza las siguientes acciones:
-   * - Crea el contenedor principal para el visor PDF y lo configura con 
-   *   los atributos ARIA necesarios para la accesibilidad.
-   * - Establece el contenido HTML del visor, que incluye controles de 
-   *   navegación, zoom, descarga e impresión.
-   * - Configura eventos para los botones de control, incluyendo navegación 
-   *   entre páginas, zoom, descarga e impresión.
-   * - Configura el canvas y el contexto para renderizar las páginas del PDF.
-   * - Implementa la funcionalidad de arrastre para mover el contenido del 
-   *   visor.
-   * - Añade manejadores de eventos para cerrar el visor al hacer clic en el 
-   *   botón de cerrar o fuera del contenido del PDF, así como al presionar 
-   *   la tecla ESC.
-   * - Asegura que el foco se mantenga dentro del visor.
+   *
    * 
-   * @async
+   * @returns {Promise<void>} - No retorna un valor, pero puede usarse como promesa cuando la inicialización esté completa.
    */
-  async init() {
+  async init({
+    url,
+    title = 'PDF Visualizer',
+    titlePageNumber = 'Page',
+    titleLoading = 'Loading PDF...',
+    isMoveable = true,
+    isClosingOnEscape = true,
+    isClosingOnClickOutside = true,
+    isDownloadingOnClick = true,
+    isPrintingOnClick = true,
+    styleContent = '',
+    styleHeader = '',
+    styleControls = '',
+    styleBody = '',
+    styleTextTitle = '',
+    styleTextPageNumber = '',
+    stylTextZoomInfo = '',
+    styleTextLoading = '',
+    styleButtonClose = '',
+    styleButtonPrev = '',
+    styleButtonNext = '',
+    styleButtonZoomIn = '',
+    styleButtonZoomOut = '',
+    styleButtonDownload = '',
+    styleButtonPrint = '',
+    onBeforeOpen,
+    onAfterOpen,
+    onBeforeClose,
+    onAfterClose,
+  }) {
+    // Se evita abrir el PDF dos veces
+    if (this.isOpen) return;
+
+    this.isOpen = true;
+    this.title = title;
+    this.titlePageNumber = titlePageNumber;
+    this.titleLoading = titleLoading;
+    this.isMoveable = isMoveable;
+    this.isClosingOnEscape = isClosingOnEscape;
+    this.isClosingOnClickOutside = isClosingOnClickOutside;
+    this.isDownloadingOnClick = isDownloadingOnClick;
+    this.isPrintingOnClick = isPrintingOnClick;
+
+    // Se ejecuta antes de abrir el PDF
+    if (typeof onBeforeOpen === 'function') {
+      onBeforeOpen();
+    }
+
     // Crear el contenedor principal
-    this.container = document.createElement('div');
-    this.container.className = 'pdf-visualizer-modal';
-    this.container.setAttribute('tabindex', '-1');
-    this.container.setAttribute('role', 'dialog');
-    this.container.setAttribute('aria-modal', 'true');
-    this.container.setAttribute('aria-labelledby', 'pdf-visualizer');
-    this.container.innerHTML = `
-        <div class="pdf-visualizer-content">
-          <div class="pdf-visualizer-header">
-            <h2>${this.title}</h2>
-            <button id="close-btn-pdf-visualizer" class="button-control">${feather.icons.x.toSvg({ width: 15, height: 15 })}</button>
+    this.modal = document.createElement('div');
+    this.modal.className = 'pdf-visualizer-modal';
+    this.modal.innerHTML = `
+        <div class="pdf-visualizer-content" style="${styleContent}">
+          <div class="pdf-visualizer-header" style="${styleHeader}">
+            <h1 style="${styleTextTitle}">${this.title}</h1>
+            <button id="close-btn-pdf-visualizer" class="button-control" style="${styleButtonClose}">${feather.icons.x.toSvg({ width: 15, height: 15 })}</button>
           </div>
-          <div class="pdf-visualizer-controls">
+          <div class="pdf-visualizer-controls" style="${styleControls}">
             <div>
-              <button id="prev" class="button-control" disabled>${feather.icons["chevrons-left"].toSvg({ width: 15, height: 15 })}</button>
-              <button id="next" class="button-control" disabled>${feather.icons["chevrons-right"].toSvg({ width: 15, height: 15 })}</button>
-              <span id="page-info">${this.titlePageNumber}: <span id="page_num"></span> / <span id="page_count"></span></span>
+              <button id="prev" class="button-control" style="${styleButtonPrev}" disabled>${feather.icons["chevrons-left"].toSvg({ width: 15, height: 15 })}</button>
+              <button id="next" class="button-control" style="${styleButtonNext}" disabled>${feather.icons["chevrons-right"].toSvg({ width: 15, height: 15 })}</button>
+              <span id="page-info" style="${styleTextPageNumber}">${this.titlePageNumber}: <span id="page_num"></span> / <span id="page_count"></span></span>
             </div>
             <div class="zoom-controls">
-              <button id="zoomOut" class="button-control" disabled>${feather.icons.minus.toSvg({ width: 15, height: 15 })}</button>
-              <span id="zoom-info">100%</span>
-              <button id="zoomIn" class="button-control" disabled>${feather.icons.plus.toSvg({ width: 15, height: 15 })}</button>
-              <button id="donwload" class="button-control">${feather.icons.download.toSvg({ width: 15, height: 15 })}</button>
-              <button id="print" class="button-control">${feather.icons.printer.toSvg({ width: 15, height: 15 })}</button>
+              <button id="zoomOut" class="button-control" style="${styleButtonZoomOut}" disabled>${feather.icons.minus.toSvg({ width: 15, height: 15 })}</button>
+              <span id="zoom-info" style="${stylTextZoomInfo}">100%</span>
+              <button id="zoomIn" class="button-control" style="${styleButtonZoomIn}" disabled>${feather.icons.plus.toSvg({ width: 15, height: 15 })}</button>
+              <button id="download" class="button-control" style="${styleButtonDownload}" ${this.isDownloadingOnClick ? '' : 'disabled'}>${feather.icons.download.toSvg({ width: 15, height: 15 })}</button>
+              <button id="print" class="button-control" style="${styleButtonPrint}" ${this.isPrintingOnClick ? '' : 'disabled'}>${feather.icons.printer.toSvg({ width: 15, height: 15 })}</button>
             </div>
           </div>
-          <div id="pdf-container">
+          <div id="pdf-body" style="${styleBody}">
             <canvas id="the-canvas"></canvas>
             <div id="preloader">
               <div class="spinner"></div>
@@ -119,13 +186,23 @@ class PDFViewer {
         </div>
       `;
 
+    // Configurar accesibilidad
+    this.container = this.modal.querySelector('.pdf-visualizer-content');
+    this.container.setAttribute('tabindex', '-1');
+    this.container.setAttribute('role', 'dialog');
+    this.container.setAttribute('aria-container', 'true');
+    this.container.setAttribute('aria-labelledby', 'pdf-visualizer');
+
     // Configurar eventos
-    this.container.querySelector('#close-btn-pdf-visualizer').addEventListener('click', () => this.close());
+    this.container.querySelector('#close-btn-pdf-visualizer').addEventListener('click', () => this.close({
+      onBeforeClose,
+      onAfterClose,
+    }));
     this.container.querySelector('#prev').addEventListener('click', () => this.onPrevPage());
     this.container.querySelector('#next').addEventListener('click', () => this.onNextPage());
     this.container.querySelector('#zoomIn').addEventListener('click', () => this.onZoomIn());
     this.container.querySelector('#zoomOut').addEventListener('click', () => this.onZoomOut());
-    this.container.querySelector('#donwload').addEventListener('click', () => this.onDownload());
+    this.container.querySelector('#download').addEventListener('click', () => this.onDownload());
     this.container.querySelector('#print').addEventListener('click', () => this.onPrint());
 
     // Configurar canvas y contexto
@@ -133,50 +210,67 @@ class PDFViewer {
     this.ctx = this.canvas.getContext('2d');
 
     // Configurar funcionalidad de arrastre
-    const pdfContainer = this.container.querySelector('#pdf-container');
-    pdfContainer.addEventListener('mousedown', (e) => this.startDragging(e));
-    pdfContainer.addEventListener('mousemove', (e) => this.drag(e));
-    pdfContainer.addEventListener('mouseup', () => this.stopDragging());
-    pdfContainer.addEventListener('mouseleave', () => this.stopDragging());
+    const pdfBbody = this.container.querySelector('#pdf-body');
+    pdfBbody.addEventListener('mousedown', (e) => this.startDragging(e));
+    pdfBbody.addEventListener('mousemove', (e) => this.drag(e));
+    pdfBbody.addEventListener('mouseup', () => this.stopDragging());
+    pdfBbody.addEventListener('mouseleave', () => this.stopDragging());
 
-    const pdfContent = this.container.querySelector('.pdf-visualizer-content');
 
-    const pdfHeader = this.container.querySelector('.pdf-visualizer-header');
-    pdfHeader.addEventListener('mousedown', (e) => {
-      this.isDraggingHeader = true;
-      this.offsetX = e.clientX - pdfContent.offsetLeft;
-      this.offsetY = e.clientY - pdfContent.offsetTop;
-    });
+    if (this.isMoveable) {
+      const pdfHeader = this.container.querySelector('.pdf-visualizer-header');
+      pdfHeader.addEventListener('mousedown', (e) => {
+        this.isDraggingHeader = true;
+        this.offsetX = e.clientX - this.container.offsetLeft;
+        this.offsetY = e.clientY - this.container.offsetTop;
+      });
 
-    pdfHeader.addEventListener('mousemove', (e) => {
-      if (!this.isDraggingHeader) return;
+      pdfHeader.addEventListener('mousemove', (e) => {
+        if (!this.isDraggingHeader) return;
 
-      pdfContent.style.left = `${e.clientX - this.offsetX}px`;
-      pdfContent.style.top = `${e.clientY - this.offsetY}px`;
-    });
+        this.container.style.left = `${e.clientX - this.offsetX}px`;
+        this.container.style.top = `${e.clientY - this.offsetY}px`;
+      });
 
-    pdfHeader.addEventListener('mouseup', () => {
-      this.isDraggingHeader = false;
-    });
+      pdfHeader.addEventListener('mouseup', () => {
+        this.isDraggingHeader = false;
+      });
+    }
 
     // Configurar funcionalidad de cierre al pulsar ESC
-    this.container.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') {
-        e.stopPropagation();
-        this.close();
-      }
-    });
+    if (this.isClosingOnEscape) {
+      this.modal.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          e.stopPropagation();
+          this.close({
+            onBeforeClose,
+            onAfterClose,
+          });
+        }
+      });
+    }
 
     // Configurar funcionalidad de cierre al hacer clic fuera del PDF
-    this.container.addEventListener('click', (e) => {
-      if (e.target === this.container) {
-        e.stopPropagation();
-        this.close();
-      }
-    });
+    if (this.isClosingOnClickOutside) {
+      this.modal.addEventListener('click', (e) => {
+        if (e.target === this.modal) {
+          e.stopPropagation();
+          this.close({
+            onBeforeClose,
+            onAfterClose,
+          });
+        }
+      });
+    }
 
     // Configurar funcionalidad de captura de foco
     this.trapFocus();
+
+    // Abrir el PDF
+    await this.open({
+      url,
+      onAfterOpen,
+    })
   }
 
   /**
@@ -397,6 +491,8 @@ class PDFViewer {
    * @returns {void} Esta función no retorna ningún valor.
    */
   async onPrint() {
+    if (!this.isPrintingOnClick) return;
+
     if (this.pageRendering || this.isClosing || this.isDownloading || this.isPrinting) return;
 
     this.isPrinting = true;
@@ -404,20 +500,24 @@ class PDFViewer {
     // Mostrar un indicador de carga
     const printButton = this.container.querySelector('#print');
     const originalContent = printButton.innerHTML;
-    printButton.innerHTML = `${feather.icons.loader.toSvg({ width: 15, height: 15 })}`;
+    printButton.innerHTML = `${feather.icons.loader.toSvg({ width: 15, height: 15, class: 'animated-spin' })}`;
     printButton.disabled = true;
-
 
     printJS({
       printable: this.url,
       type: 'pdf',
       showModal: false,
-      modalMessage: 'Preparando documento para imprimir...',
       onLoadingEnd: () => {
         printButton.innerHTML = originalContent;
         printButton.disabled = false;
         this.isPrinting = false;
-      }
+      },
+      onError: (error) => {
+        console.error('Error al imprimir el PDF:', error);
+        printButton.innerHTML = originalContent;
+        printButton.disabled = false;
+        this.isPrinting = false;
+      },
     });
   }
 
@@ -436,15 +536,18 @@ class PDFViewer {
    * @returns {Promise<void>} Esta función es asíncrona y no retorna ningún valor.
    */
   async onDownload() {
+    if (!this.isDownloadingOnClick) return;
+
     if (this.pageRendering || this.isClosing || this.isDownloading || this.isPrinting) return;
 
     this.isDownloading = true;
 
+    const downloadButton = this.container.querySelector('#download');
+    const originalContent = downloadButton.innerHTML;
+
     try {
       // Mostrar un indicador de carga
-      const downloadButton = this.container.querySelector('#donwload');
-      const originalContent = downloadButton.innerHTML;
-      downloadButton.innerHTML = `${feather.icons.loader.toSvg({ width: 15, height: 15 })}`;
+      downloadButton.innerHTML = feather.icons.loader.toSvg({ width: 15, height: 15, class: 'animated-spin' });
       downloadButton.disabled = true;
 
       // Fetch el PDF como un blob
@@ -462,15 +565,13 @@ class PDFViewer {
 
       // Limpiar el objeto URL temporal
       window.URL.revokeObjectURL(blobUrl);
-
+    } catch (error) {
+      console.error('Error al descargar el PDF:', error);
+    } finally {
       // Restaurar el botón
       downloadButton.innerHTML = originalContent;
       downloadButton.disabled = false;
-    } catch (error) {
-      const downloadButton = this.container.querySelector('#donwload');
-      downloadButton.innerHTML = `${feather.icons.download.toSvg({ width: 15, height: 15 })}`;
-      downloadButton.disabled = false;
-    } finally {
+
       this.isDownloading = false;
     }
   }
@@ -523,10 +624,10 @@ class PDFViewer {
    */
   startDragging(e) {
     this.isDraggingScroll = true;
-    this.startX = e.pageX - this.container.offsetLeft;
-    this.startY = e.pageY - this.container.offsetTop;
-    this.scrollLeft = this.container.querySelector('#pdf-container').scrollLeft;
-    this.scrollTop = this.container.querySelector('#pdf-container').scrollTop;
+    this.startX = e.pageX - this.modal.offsetLeft;
+    this.startY = e.pageY - this.modal.offsetTop;
+    this.scrollLeft = this.container.querySelector('#pdf-body').scrollLeft;
+    this.scrollTop = this.container.querySelector('#pdf-body').scrollTop;
   }
 
   /**
@@ -556,69 +657,75 @@ class PDFViewer {
   drag(e) {
     if (!this.isDraggingScroll) return;
     e.preventDefault();
-    const x = e.pageX - this.container.offsetLeft;
-    const y = e.pageY - this.container.offsetTop;
+    const x = e.pageX - this.modal.offsetLeft;
+    const y = e.pageY - this.modal.offsetTop;
     const walkX = (x - this.startX) * 2;
     const walkY = (y - this.startY) * 2;
-    this.container.querySelector('#pdf-container').scrollLeft = this.scrollLeft - walkX;
-    this.container.querySelector('#pdf-container').scrollTop = this.scrollTop - walkY;
+    this.container.querySelector('#pdf-body').scrollLeft = this.scrollLeft - walkX;
+    this.container.querySelector('#pdf-body').scrollTop = this.scrollTop - walkY;
   }
 
   /**
-   * Abre el visor PDF y carga un documento PDF desde la URL proporcionada.
-   *
-   * Este método realiza las siguientes acciones:
-   * - Espera a que se complete el cierre de la instancia anterior del visor
-   *   si está en proceso de cierre.
-   * - Almacena el elemento que tenía el foco anteriormente para poder
-   *   restaurarlo al cerrar el visor.
-   * - Establece el atributo 'aria-hidden' del contenedor en 'false' para
-   *   indicar que el modal es visible.
-   * - Asigna el foco al contenedor del visor PDF.
-   * - Agrega el contenedor al cuerpo del documento.
-   * - Llama al método `loadPDF()` para cargar el documento PDF a partir
-   *   de la URL proporcionada.
-   *
-   * @param {string} url - La URL del documento PDF que se va a cargar.
-   * @returns {Promise<void>} - Una promesa que se resuelve cuando el PDF se carga.
+   * Abre el visor de PDF y carga el archivo desde la URL proporcionada.
+   * 
+   * @async
+   * @function open
+   * @param {Object} options - Configuración para personalizar el visor PDF.
+   * @param {string} [options.url] - URL del archivo PDF a cargar.
+   * @param {Function} [options.onAfterOpen] - Función a ejecutar después de que el PDF se haya cargado y el visor se haya abierto.
+   * 
+   * @returns {Promise<void>} - Retorna una promesa que se resuelve cuando el visor se ha abierto y el PDF ha sido cargado.
+   * 
+   * @throws {Error} Si hay algún error al cargar el PDF o al inicializar el visor.
    */
-  async open(url) {
-    if (this.isClosing) {
-      await new Promise(resolve => setTimeout(resolve, 100)); // Pequeña pausa para asegurar que el cierre se complete
-    }
+  async open({
+    url,
+    onAfterOpen,
+  }) {
+    // Abrir el PDF
     this.previousFocusedElement = document.activeElement;
+    // Se coloca al final del body para que se muestre por último
+    document.body.appendChild(this.modal);
+    // Inicializar el modal
     this.container.setAttribute('aria-hidden', 'false');
-    this.container.focus();
-    document.body.appendChild(this.container);
+    // Se coloca al primer elemento enfocable
+    this.modal.focus();
+
+    // Cargar el PDF
     await this.loadPDF(url);
+
+    // Se ejecuta después de abrir el PDF
+    if (typeof onAfterOpen === 'function') {
+      onAfterOpen();
+    }
   }
 
   /**
-   * Cierra el visor PDF y reinicia su estado interno.
-   *
-   * Este método realiza las siguientes acciones:
-   * - Verifica si se está renderizando una página o si ya se está
-   *   cerrando el visor. Si es así, no hace nada.
-   * - Establece el estado de cierre (`isClosing`) en `true` para evitar
-   *   múltiples cierres simultáneos.
-   * - Agrega una clase CSS para animar el cierre del contenido del visor.
-   * - Al final de la animación, elimina el contenedor del documento
-   *   y reinicia el estado interno del visor.
-   * - Limpia el canvas y restablece la interfaz de usuario.
-   * - Devuelve el foco al elemento que tenía el foco antes de abrir el visor.
-   * - Destruye el documento PDF si existe.
-   *
+   * Cierra el visor de PDF y restablece todos los estados y elementos de la interfaz.
+   * 
+   * @function close
+   * @param {Object} options - Configuración para personalizar el visor PDF.
+   * @param {Function} [options.onBeforeClose] - Función a ejecutar antes de que el PDF se cierre.
+   * @param {Function} [options.onAfterClose] - Función a ejecutar después de que el PDF se cierre.
+   * 
    * @returns {void}
    */
-  close() {
+  close({
+    onBeforeClose,
+    onAfterClose,
+  } = {}) {
     if (this.pageRendering || this.isClosing || this.isDownloading || this.isPrinting) return;
 
-    this.isClosing = true;
-    const pdfContent = this.container.querySelector('.pdf-visualizer-content');
-    pdfContent.classList.add('pdf-visualizer-content-closed');
+    // Se ejecuta antes de cerrar el PDF
+    if (typeof onBeforeClose === 'function') {
+      onBeforeClose();
+    }
 
-    pdfContent.addEventListener('animationend', () => {
-      document.body.removeChild(this.container);
+    this.isClosing = true;
+    this.container.classList.add('pdf-visualizer-content-closed');
+
+    this.container.addEventListener('animationend', () => {
+      document.body.removeChild(this.modal);
 
       // Reiniciar el estado
       this.url = '';
@@ -649,8 +756,8 @@ class PDFViewer {
       this.container.setAttribute('aria-hidden', 'true');
 
       // Restablecer la posición del contenido
-      pdfContent.style.left = 'auto';
-      pdfContent.style.top = 'auto';
+      this.container.style.left = 'auto';
+      this.container.style.top = 'auto';
 
       // Devolver el foco al elemento anterior
       this.previousFocusedElement?.focus();
@@ -660,11 +767,17 @@ class PDFViewer {
         this.pdfDoc.destroy();
       }
 
+      this.isOpen = false;
       this.isClosing = false;
       this.isDownloading = false;
-      pdfContent.classList.remove('pdf-visualizer-content-closed');
+      this.isPrinting = false;
+      this.container.classList.remove('pdf-visualizer-content-closed');
 
-    }, { once: true });
+      // Se ejecuta después de cerrar el PDF
+      if (typeof onAfterClose === 'function') {
+        onAfterClose();
+      }
+    });
   }
 }
 
