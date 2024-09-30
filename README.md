@@ -133,6 +133,16 @@ PDFViewer.close({
 });
 ```
 
+### Check if the PDF is open or closed
+
+```javascript
+if (PDFViewer.isOpen()) {
+  console.log("PDF is open");
+} else {
+  console.log("PDF is closed");
+}
+```
+
 ### React
 
 ```jsx
