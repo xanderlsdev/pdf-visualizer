@@ -714,6 +714,10 @@ class PDFViewer {
     onBeforeClose,
     onAfterClose,
   } = {}) {
+    // Se evita cerrar el PDF si no está abierto
+    if (!this.isOpen) return;
+
+    // Se evita cerrar el PDF si se está renderizando una página
     if (this.pageRendering || this.isClosing || this.isDownloading || this.isPrinting) return;
 
     // Se ejecuta antes de cerrar el PDF
