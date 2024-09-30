@@ -52,7 +52,7 @@ class PDFViewer {
     this.scrollLeft = 0;
     this.scrollTop = 0;
     this.previousFocusedElement = null;
-    this.isOpen = false;
+    this.isOpening = false;
     this.isClosing = false;
     this.isDownloading = false;
     this.isPrinting = false;
@@ -136,9 +136,9 @@ class PDFViewer {
     onAfterClose,
   }) {
     // Se evita abrir el PDF dos veces
-    if (this.isOpen) return;
+    if (this.isOpening) return;
 
-    this.isOpen = true;
+    this.isOpening = true;
     this.title = title;
     this.titlePageNumber = titlePageNumber;
     this.titleLoading = titleLoading;
@@ -715,7 +715,7 @@ class PDFViewer {
     onAfterClose,
   } = {}) {
     // Se evita cerrar el PDF si no está abierto
-    if (!this.isOpen) return;
+    if (!this.isOpening) return;
 
     // Se evita cerrar el PDF si se está renderizando una página
     if (this.pageRendering || this.isClosing || this.isDownloading || this.isPrinting) return;
@@ -771,7 +771,7 @@ class PDFViewer {
         this.pdfDoc.destroy();
       }
 
-      this.isOpen = false;
+      this.isOpening = false;
       this.isClosing = false;
       this.isDownloading = false;
       this.isPrinting = false;
@@ -782,6 +782,26 @@ class PDFViewer {
         onAfterClose();
       }
     });
+  }
+
+  /**
+   * Verifica si el PDF está abierto actualmente.
+   * 
+   * @function isOpen
+   * @returns {boolean} True si el PDF está abierto, false en caso contrario.
+   */
+  isOpen() {
+    return this.isOpening;
+  }
+
+  /**
+   * Verifica si el PDF está cerrado actualmente.
+   * 
+   * @function isClosed
+   * @returns {boolean} True si el PDF está cerrado, false en caso contrario.
+   */
+  isClosed() {
+    return !this.isOpening;
   }
 }
 
