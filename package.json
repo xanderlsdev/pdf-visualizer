@@ -4,6 +4,10 @@
   "description": "A modular PDF viewer that works as a modal in various JavaScript frameworks",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/xanderlsdev/pdf-visualizer"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "copy-css": "npx cpx src/css/*.css dist/css",
@@ -17,7 +21,7 @@
     "\"javascript\"",
     "\"typescript\""
   ],
-  "author": "XanderLs",
+  "author": "XanderLs <xanderlsdev@gmail.com>",
   "license": "MIT",
   "dependencies": {
     "feather-icons": "^4.29.2",
