@@ -1,4 +1,4 @@
-// pdfViewer.js
+// PDFVisualizer.js
 import { getDocument, GlobalWorkerOptions } from "pdfjs-dist";
 import printJS from 'print-js';
 import feather from 'feather-icons';
@@ -7,7 +7,7 @@ import '../css/style.css';
 /**
  * Clase que representa un visor de documentos PDF.
  * 
- * La clase `PDFViewer` se encarga de gestionar la visualización de 
+ * La clase `PDFVisualizer` se encarga de gestionar la visualización de 
  * archivos PDF, incluyendo la navegación entre páginas, el zoom, 
  * la impresión y la descarga de documentos. Proporciona métodos para 
  * interactuar con el documento PDF, así como para manejar la 
@@ -15,7 +15,7 @@ import '../css/style.css';
  * Utiliza la biblioteca PDF.js para la carga y renderización de los 
  * documentos PDF de manera eficiente.
  */
-class PDFViewer {
+class PDFVisualizer {
 
   /**
    * Crea una instancia de la clase PDF Visualizer.
@@ -805,4 +805,4 @@ class PDFViewer {
   }
 }
 
-export default PDFViewer;
+export default PDFVisualizer;

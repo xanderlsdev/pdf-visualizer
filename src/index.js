@@ -1,5 +1,5 @@
-import PDFViewer from './js/pdfViewer';
+import PDFVisualizer from './js/pdfVisualizer';
 
-const viewer = new PDFViewer();
+const pdfVisualizer = new PDFVisualizer();
 
-export default viewer;
+export default pdfVisualizer;

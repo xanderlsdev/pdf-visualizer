@@ -14,10 +14,10 @@ npm install pdf-visualizer
 
 ![Examples 1](example/example1.gif)
 ```javascript
-import PDFViewer from "pdf-visualizer";
+import pdfVisualizer from "pdf-visualizer";
 
 // Create the PDF visualizer basically
-await PDFViewer.init({
+await pdfVisualizer.init({
   url: "https://api.syssoftintegra.com/servicios/syssoft/api/reporte/facturacion/venta/pdf/a4/VT0002",
 });
 
@@ -26,7 +26,7 @@ await PDFViewer.init({
 ![Example 2](example/example2.gif)
 ```javascript
 // Create the PDF visualizer with custom styles and events
-await PDFViewer.init({
+await pdfVisualizer.init({
   url: "https://api.syssoftintegra.com/servicios/syssoft/api/reporte/facturacion/venta/pdf/ticket/VT0002",
   title: "PDF Visualizer",
   titlePageNumber: "Página",
@@ -69,7 +69,7 @@ await PDFViewer.init({
 ```
 
 ```javascript
-await PDFViewer.init({
+await pdfVisualizer.init({
   url: "https://api.syssoftintegra.com/servicios/syssoft/api/reporte/facturacion/venta/pdf/ticket/VT0002",
   title: "PDF Visualizer",
   titlePageNumber: "Página",
@@ -112,7 +112,7 @@ await PDFViewer.init({
 
 // Close the PDF visualizer with custom events and example of timeout
 setTimeout(() => {
-  PDFViewer.close({
+  pdfVisualizer.close({
     onBeforeClose: () => {
       console.log("Closing 1 PDF");
     },
@@ -123,7 +123,7 @@ setTimeout(() => {
 }, 5000);
 
 // Close the PDF visualizer with custom events
-PDFViewer.close({
+pdfVisualizer.close({
   onBeforeClose: () => {
     console.log("Closing 1 PDF");
   },
@@ -136,7 +136,7 @@ PDFViewer.close({
 ### Check if the PDF is open or closed
 
 ```javascript
-if (PDFViewer.isOpen()) {
+if (pdfVisualizer.isOpen()) {
   console.log("PDF is open");
 } else {
   console.log("PDF is closed");
@@ -147,13 +147,13 @@ if (PDFViewer.isOpen()) {
 
 ```jsx
 import React, { useEffect, useRef } from "react";
-import PDFViewer from "pdf-visualizer";
+import pdfVisualizer from "pdf-visualizer";
 
-function PDFViewerComponent({ url }) {
+function PDFVisualizerComponent({ url }) {
   const viewerRef = useRef(null);
 
   useEffect(() => {
-    viewerRef.current = PDFViewer;
+    viewerRef.current = pdfVisualizer;
 
     return () => {
       if (viewerRef.current) {
@@ -182,7 +182,7 @@ function PDFViewerComponent({ url }) {
 </template>
 
 <script>
-import PDFViewer from "pdf-visualizer";
+import pdfVisualizer from "pdf-visualizer";
 
 export default {
   props: ["url"],
@@ -192,7 +192,7 @@ export default {
     };
   },
   mounted() {
-    this.viewer = PDFViewer;
+    this.viewer = pdfVisualizer;
   },
   beforeDestroy() {
     if (this.viewer) {
@@ -216,18 +216,18 @@ export default {
 
 ```typescript
 import { Component, OnInit, OnDestroy, Input } from "@angular/core";
-import PDFViewer from "pdf-visualizer";
+import pdfVisualizer from "pdf-visualizer";
 
 @Component({
   selector: "app-pdf-viewer",
   template: '<button (click)="openViewer()">Ver PDF</button>',
 })
-export class PDFViewerComponent implements OnInit, OnDestroy {
+export class PDFVisualizerComponent implements OnInit, OnDestroy {
   @Input() url: string;
   private viewer: any;
 
   ngOnInit() {
-    this.viewer = PDFViewer;
+    this.viewer = pdfVisualizer;
   }
 
   ngOnDestroy() {
