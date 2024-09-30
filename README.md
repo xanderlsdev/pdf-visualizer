@@ -12,12 +12,125 @@ npm install pdf-visualizer
 
 ### Vanilla JavaScript
 
+![Examples 1](example/example1.gif)
 ```javascript
 import PDFViewer from "pdf-visualizer";
 
-await PDFViewer.open(
-  "https://api.syssoftintegra.com/servicios/leatsac/api/reporte/facturacion/venta/pdf/a4/VT0593"
-);
+// Create the PDF visualizer basically
+await PDFViewer.init({
+  url: "https://api.syssoftintegra.com/servicios/syssoft/api/reporte/facturacion/venta/pdf/a4/VT0002",
+});
+
+```
+
+![Example 2](example/example2.gif)
+```javascript
+// Create the PDF visualizer with custom styles and events
+await PDFViewer.init({
+  url: "https://api.syssoftintegra.com/servicios/syssoft/api/reporte/facturacion/venta/pdf/ticket/VT0002",
+  title: "PDF Visualizer",
+  titlePageNumber: "Página",
+  titleLoading: "Cargando PDF...",
+  styleContent: "background-color: red;",
+  styleHeader: "background-color: orange;",
+  styleControls: "background-color: yellow;",
+  styleBody: "background-color: green;",
+  styleTextTitle: "color: red; font-size: 50px;",
+  styleTextPageNumber: "color: blue;",
+  stylTextZoomInfo: "color: pink;",
+  styleTextLoading: "color: green;",
+  styleButtonClose: "color: red; padding: 6px;",
+  styleButtonPrev: "color: orange;",
+  styleButtonNext: "color: purple;",
+  styleButtonZoomIn: "color: white;",
+  styleButtonZoomOut: "color: brown;",
+  styleButtonDownload: "color: black;",
+  styleButtonPrint: "color: red;",
+  isMoveable: true,
+  isClosingOnEscape: true,
+  isClosingOnClickOutside: true,
+  isDownloadingOnClick: true,
+  isPrintingOnClick: true,
+  onAfterOpen: () => {
+    console.log("PDF opened");
+  },
+  onBeforeOpen: () => {
+    console.log("Opening PDF");
+  },
+  // Event execute before closing the PDF by not using the function close 
+  onBeforeClose: () => {
+    console.log("Closing PDF");
+  },
+  // Event execute after closing the PDF by not using the function close
+  onAfterClose: () => {
+    console.log("PDF closed");
+  },
+});
+```
+
+```javascript
+await PDFViewer.init({
+  url: "https://api.syssoftintegra.com/servicios/syssoft/api/reporte/facturacion/venta/pdf/ticket/VT0002",
+  title: "PDF Visualizer",
+  titlePageNumber: "Página",
+  titleLoading: "Cargando PDF...",
+  styleContent: "background-color: red;",
+  styleHeader: "background-color: orange;",
+  styleControls: "background-color: yellow;",
+  styleBody: "background-color: green;",
+  styleTextTitle: "color: red; font-size: 50px;",
+  styleTextPageNumber: "color: blue;",
+  stylTextZoomInfo: "color: pink;",
+  styleTextLoading: "color: green;",
+  styleButtonClose: "color: red; padding: 6px;",
+  styleButtonPrev: "color: orange;",
+  styleButtonNext: "color: purple;",
+  styleButtonZoomIn: "color: white;",
+  styleButtonZoomOut: "color: brown;",
+  styleButtonDownload: "color: black;",
+  styleButtonPrint: "color: red;",
+  isMoveable: true,
+  isClosingOnEscape: true,
+  isClosingOnClickOutside: true,
+  isDownloadingOnClick: true,
+  isPrintingOnClick: true,
+  onAfterOpen: () => {
+    console.log("PDF opened");
+  },
+  onBeforeOpen: () => {
+    console.log("Opening PDF");
+  },
+  // Event execute before closing the PDF by not using the function close 
+  onBeforeClose: () => {
+    console.log("Closing PDF");
+  },
+  // Event execute after closing the PDF by not using the function close
+  onAfterClose: () => {
+    console.log("PDF closed");
+  },
+});
+
+// Close the PDF visualizer with custom events and example of timeout
+setTimeout(() => {
+  PDFViewer.close({
+    onBeforeClose: () => {
+      console.log("Closing 1 PDF");
+    },
+    onAfterClose: () => {
+      console.log("PDF closed 1");
+    },
+  });
+}, 5000);
+
+// Close the PDF visualizer with custom events
+PDFViewer.close({
+  onBeforeClose: () => {
+    console.log("Closing 1 PDF");
+  },
+  onAfterClose: () => {
+    console.log("PDF closed 1");
+  },
+});
 ```
 
 ### React
@@ -41,7 +154,9 @@ function PDFViewerComponent({ url }) {
 
   const openViewer = async () => {
     if (viewerRef.current) {
-      await viewerRef.current.open(url);
+      await viewerRef.current.init({
+        url: url,
+      });
     }
   };
 
@@ -77,7 +192,9 @@ export default {
   methods: {
     openViewer() {
       async if (this.viewer) {
-        await this.viewer.open(this.url);
+        await this.viewer.init({
+          url: this.url,
+        });
       }
     },
   },
@@ -111,7 +228,9 @@ export class PDFViewerComponent implements OnInit, OnDestroy {
 
   async openViewer() {
     if (this.viewer) {
-      await this.viewer.open(this.url);
+      await this.viewer.init({
+        url: this.url,
+      });
     }
   }
 }
