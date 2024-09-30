@@ -689,7 +689,7 @@ class PDFViewer {
     // Inicializar el modal
     this.container.setAttribute('aria-hidden', 'false');
     // Se coloca al primer elemento enfocable
-    this.modal.focus();
+    this.container.focus();
 
     // Cargar el PDF
     await this.loadPDF(url);
