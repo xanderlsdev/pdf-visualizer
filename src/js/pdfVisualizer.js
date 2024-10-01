@@ -30,7 +30,7 @@ class PDFVisualizer {
    */
   constructor() {
     this.url = '';
-    this.modal = null,
+    this.modal = null;
     this.container = null;
     this.title = 'PDF Visualizer';
     this.titlePageNumber = 'Page';
@@ -100,6 +100,7 @@ class PDFVisualizer {
    * @param {Function} [options.onAfterOpen] - Función a ejecutar después de que el PDF se haya cargado y el visor se haya abierto.
    * @param {Function} [options.onBeforeClose] - Función a ejecutar antes de que el PDF se cierre.
    * @param {Function} [options.onAfterClose] - Función a ejecutar después de que el PDF se cierre.
+   * @param {Function} [options.onError] - Función a ejecutar si ocurre un error al cargar el PDF.
    * 
    * @returns {Promise<void>} - No retorna un valor, pero puede usarse como promesa cuando la inicialización esté completa.
    */
@@ -132,29 +133,31 @@ class PDFVisualizer {
     onAfterOpen,
     onBeforeClose,
     onAfterClose,
+    onError,
   }) {
-    // Se evita abrir el PDF dos veces
-    if (this.isOpening) return;
+    try {
+      // Se evita abrir el PDF dos veces
+      if (this.isOpening) return;
 
-    this.isOpening = true;
-    this.title = title;
-    this.titlePageNumber = titlePageNumber;
-    this.titleLoading = titleLoading;
-    this.isMoveable = isMoveable;
-    this.isClosingOnEscape = isClosingOnEscape;
-    this.isClosingOnClickOutside = isClosingOnClickOutside;
-    this.isDownloadingOnClick = isDownloadingOnClick;
-    this.isPrintingOnClick = isPrintingOnClick;
+      this.isOpening = true;
+      this.title = title;
+      this.titlePageNumber = titlePageNumber;
+      this.titleLoading = titleLoading;
+      this.isMoveable = isMoveable;
+      this.isClosingOnEscape = isClosingOnEscape;
+      this.isClosingOnClickOutside = isClosingOnClickOutside;
+      this.isDownloadingOnClick = isDownloadingOnClick;
+      this.isPrintingOnClick = isPrintingOnClick;
 
-    // Se ejecuta antes de abrir el PDF
-    if (typeof onBeforeOpen === 'function') {
-      onBeforeOpen();
-    }
+      // Se ejecuta antes de abrir el PDF
+      if (typeof onBeforeOpen === 'function') {
+        onBeforeOpen();
+      }
 
-    // Crear el contenedor principal
-    this.modal = document.createElement('div');
-    this.modal.className = 'pdf-visualizer-modal';
-    this.modal.innerHTML = `
+      // Crear el contenedor principal
+      this.modal = document.createElement('div');
+      this.modal.className = 'pdf-visualizer-modal';
+      this.modal.innerHTML = `
         <div class="pdf-visualizer-content" style="${styleContent}">
           <div class="pdf-visualizer-header" style="${styleHeader}">
             <h4 style="${styleTextTitle}">${this.title}</h4>
@@ -184,91 +187,97 @@ class PDFVisualizer {
         </div>
       `;
 
-    // Configurar accesibilidad
-    this.container = this.modal.querySelector('.pdf-visualizer-content');
-    this.container.setAttribute('tabindex', '-1');
-    this.container.setAttribute('role', 'dialog');
-    this.container.setAttribute('aria-container', 'true');
-    this.container.setAttribute('aria-labelledby', 'pdf-visualizer');
+      // Configurar accesibilidad
+      this.container = this.modal.querySelector('.pdf-visualizer-content');
+      this.container.setAttribute('tabindex', '-1');
+      this.container.setAttribute('role', 'dialog');
+      this.container.setAttribute('aria-container', 'true');
+      this.container.setAttribute('aria-labelledby', 'pdf-visualizer');
 
-    // Configurar eventos
-    this.container.querySelector('#close-btn-pdf-visualizer').addEventListener('click', () => this.close({
-      onBeforeClose,
-      onAfterClose,
-    }));
-    this.container.querySelector('#prev').addEventListener('click', () => this.onPrevPage());
-    this.container.querySelector('#next').addEventListener('click', () => this.onNextPage());
-    this.container.querySelector('#zoomIn').addEventListener('click', () => this.onZoomIn());
-    this.container.querySelector('#zoomOut').addEventListener('click', () => this.onZoomOut());
-    this.container.querySelector('#download').addEventListener('click', () => this.onDownload());
-    this.container.querySelector('#print').addEventListener('click', () => this.onPrint());
+      // Configurar eventos
+      this.container.querySelector('#close-btn-pdf-visualizer').addEventListener('click', () => this.close({
+        onBeforeClose,
+        onAfterClose,
+      }));
+      this.container.querySelector('#prev').addEventListener('click', () => this.onPrevPage());
+      this.container.querySelector('#next').addEventListener('click', () => this.onNextPage());
+      this.container.querySelector('#zoomIn').addEventListener('click', () => this.onZoomIn());
+      this.container.querySelector('#zoomOut').addEventListener('click', () => this.onZoomOut());
+      this.container.querySelector('#download').addEventListener('click', () => this.onDownload());
+      this.container.querySelector('#print').addEventListener('click', () => this.onPrint());
 
-    // Configurar canvas y contexto
-    this.canvas = this.container.querySelector('#the-canvas');
-    this.ctx = this.canvas.getContext('2d');
+      // Configurar canvas y contexto
+      this.canvas = this.container.querySelector('#the-canvas');
+      this.ctx = this.canvas.getContext('2d');
 
-    // Configurar funcionalidad de arrastre
-    const pdfBbody = this.container.querySelector('#pdf-body');
-    pdfBbody.addEventListener('mousedown', (e) => this.startDragging(e));
-    pdfBbody.addEventListener('mousemove', (e) => this.drag(e));
-    pdfBbody.addEventListener('mouseup', () => this.stopDragging());
-    pdfBbody.addEventListener('mouseleave', () => this.stopDragging());
+      // Configurar funcionalidad de arrastre
+      const pdfBbody = this.container.querySelector('#pdf-body');
+      pdfBbody.addEventListener('mousedown', (e) => this.startDragging(e));
+      pdfBbody.addEventListener('mousemove', (e) => this.drag(e));
+      pdfBbody.addEventListener('mouseup', () => this.stopDragging());
+      pdfBbody.addEventListener('mouseleave', () => this.stopDragging());
 
 
-    if (this.isMoveable) {
-      const pdfHeader = this.container.querySelector('.pdf-visualizer-header');
-      pdfHeader.addEventListener('mousedown', (e) => {
-        this.isDraggingHeader = true;
-        this.offsetX = e.clientX - this.container.offsetLeft;
-        this.offsetY = e.clientY - this.container.offsetTop;
+      if (this.isMoveable) {
+        const pdfHeader = this.container.querySelector('.pdf-visualizer-header');
+        pdfHeader.addEventListener('mousedown', (e) => {
+          this.isDraggingHeader = true;
+          this.offsetX = e.clientX - this.container.offsetLeft;
+          this.offsetY = e.clientY - this.container.offsetTop;
+        });
+
+        pdfHeader.addEventListener('mousemove', (e) => {
+          if (!this.isDraggingHeader) return;
+
+          this.container.style.left = `${e.clientX - this.offsetX}px`;
+          this.container.style.top = `${e.clientY - this.offsetY}px`;
+        });
+
+        pdfHeader.addEventListener('mouseup', () => {
+          this.isDraggingHeader = false;
+        });
+      }
+
+      // Configurar funcionalidad de cierre al pulsar ESC
+      if (this.isClosingOnEscape) {
+        this.modal.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape') {
+            e.stopPropagation();
+            this.close({
+              onBeforeClose,
+              onAfterClose,
+            });
+          }
+        });
+      }
+
+      // Configurar funcionalidad de cierre al hacer clic fuera del PDF
+      if (this.isClosingOnClickOutside) {
+        this.modal.addEventListener('click', (e) => {
+          if (e.target === this.modal) {
+            e.stopPropagation();
+            this.close({
+              onBeforeClose,
+              onAfterClose,
+            });
+          }
+        });
+      }
+
+      // Configurar funcionalidad de captura de foco
+      this.trapFocus();
+
+      // Abrir el PDF
+      await this.open({
+        url,
+        onAfterOpen,
       });
-
-      pdfHeader.addEventListener('mousemove', (e) => {
-        if (!this.isDraggingHeader) return;
-
-        this.container.style.left = `${e.clientX - this.offsetX}px`;
-        this.container.style.top = `${e.clientY - this.offsetY}px`;
-      });
-
-      pdfHeader.addEventListener('mouseup', () => {
-        this.isDraggingHeader = false;
-      });
+    } catch (error) {
+      if (typeof onError === 'function') {
+        onError(error);
+      }
+      this.container.querySelector('#preloader').textContent = 'Error al cargar el PDF. Por favor, intente de nuevo.';
     }
-
-    // Configurar funcionalidad de cierre al pulsar ESC
-    if (this.isClosingOnEscape) {
-      this.modal.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') {
-          e.stopPropagation();
-          this.close({
-            onBeforeClose,
-            onAfterClose,
-          });
-        }
-      });
-    }
-
-    // Configurar funcionalidad de cierre al hacer clic fuera del PDF
-    if (this.isClosingOnClickOutside) {
-      this.modal.addEventListener('click', (e) => {
-        if (e.target === this.modal) {
-          e.stopPropagation();
-          this.close({
-            onBeforeClose,
-            onAfterClose,
-          });
-        }
-      });
-    }
-
-    // Configurar funcionalidad de captura de foco
-    this.trapFocus();
-
-    // Abrir el PDF
-    await this.open({
-      url,
-      onAfterOpen,
-    })
   }
 
   /**
@@ -320,22 +329,30 @@ class PDFVisualizer {
   /**
    * Carga y renderiza un documento PDF a partir de una URL proporcionada.
    * @param {string} url - Un objeto que contiene la URL del PDF a cargar.
+   * @throws {Error} Si hay algún error al cargar el PDF o al inicializar el visor.
+   * 
    * @returns {Promise<void>} - Una promesa que se resuelve una vez que el PDF se ha cargado y renderizado.
    */
   async loadPDF(url) {
     try {
       this.pageRendering = true;
       this.url = url;
+
+      // Cargar el documento PDF
       const loadingTask = getDocument(this.url);
       const pdfDoc_ = await loadingTask.promise;
       this.pdfDoc = pdfDoc_;
+
+      // Actualizar el número de páginas
       this.container.querySelector('#page_count').textContent = this.pdfDoc.numPages;
       this.container.querySelector('#preloader').style.display = 'none';
+
+      // Renderizar la primera página
       await this.renderPage(this.pageNum);
     } catch (error) {
-      console.error('Error al cargar el PDF:', error);
+      throw new Error(error);
+    } finally {
       this.pageRendering = false;
-      this.container.querySelector('#preloader').textContent = 'Error al cargar el PDF. Por favor, intente de nuevo.';
     }
   }
 
@@ -345,7 +362,10 @@ class PDFVisualizer {
    * @returns {void}
    */
   async renderPage(num) {
+    // Obtener la página específica
     this.page = await this.pdfDoc.getPage(num);
+
+    // Obtener las dimensiones de la página
     const viewport = this.page.getViewport({ scale: this.scale });
     this.canvas.height = viewport.height;
     this.canvas.width = viewport.width;
@@ -354,6 +374,7 @@ class PDFVisualizer {
       canvasContext: this.ctx,
       viewport: viewport
     };
+
     const renderTask = this.page.render(renderContext);
 
     await renderTask.promise;
@@ -672,30 +693,33 @@ class PDFVisualizer {
    * @param {Object} options - Configuración para personalizar el visor PDF.
    * @param {string} [options.url] - URL del archivo PDF a cargar.
    * @param {Function} [options.onAfterOpen] - Función a ejecutar después de que el PDF se haya cargado y el visor se haya abierto.
+   * @throws {Error} Si hay algún error al cargar el PDF o al inicializar el visor.
    * 
    * @returns {Promise<void>} - Retorna una promesa que se resuelve cuando el visor se ha abierto y el PDF ha sido cargado.
-   * 
-   * @throws {Error} Si hay algún error al cargar el PDF o al inicializar el visor.
    */
   async open({
     url,
     onAfterOpen,
   }) {
-    // Abrir el PDF
-    this.previousFocusedElement = document.activeElement;
-    // Se coloca al final del body para que se muestre por último
-    document.body.appendChild(this.modal);
-    // Inicializar el modal
-    this.container.setAttribute('aria-hidden', 'false');
-    // Se coloca al primer elemento enfocable
-    this.container.focus();
+    try {
+      // Abrir el PDF
+      this.previousFocusedElement = document.activeElement;
+      // Se coloca al final del body para que se muestre por último
+      document.body.appendChild(this.modal);
+      // Inicializar el modal
+      this.container.setAttribute('aria-hidden', 'false');
+      // Se coloca al primer elemento enfocable
+      this.container.focus();
 
-    // Cargar el PDF
-    await this.loadPDF(url);
+      // Cargar el PDF
+      await this.loadPDF(url);
 
-    // Se ejecuta después de abrir el PDF
-    if (typeof onAfterOpen === 'function') {
-      onAfterOpen();
+      // Se ejecuta después de abrir el PDF
+      if (typeof onAfterOpen === 'function') {
+        onAfterOpen();
+      }
+    } catch (error) {
+      throw new Error(error);
     }
   }
 
