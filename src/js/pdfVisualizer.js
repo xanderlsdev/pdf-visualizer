@@ -101,8 +101,6 @@ class PDFVisualizer {
    * @param {Function} [options.onBeforeClose] - Función a ejecutar antes de que el PDF se cierre.
    * @param {Function} [options.onAfterClose] - Función a ejecutar después de que el PDF se cierre.
    * 
-   *
-   * 
    * @returns {Promise<void>} - No retorna un valor, pero puede usarse como promesa cuando la inicialización esté completa.
    */
   async init({
@@ -336,6 +334,7 @@ class PDFVisualizer {
       await this.renderPage(this.pageNum);
     } catch (error) {
       console.error('Error al cargar el PDF:', error);
+      this.pageRendering = false;
       this.container.querySelector('#preloader').textContent = 'Error al cargar el PDF. Por favor, intente de nuevo.';
     }
   }
