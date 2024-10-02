@@ -158,20 +158,20 @@ class PDFVisualizer {
         <div class="pdf-visualizer-content" style="${styleContent}">
           <div class="pdf-visualizer-header" style="${styleHeader}">
             <h5 style="${styleTextTitle}">${this.title}</h5>
-            <button id="close-btn-pdf-visualizer" class="button-control" style="${styleButtonClose}">${feather.icons.x.toSvg({ width: 15, height: 15 })}</button>
+            <button id="close-btn-pdf-visualizer" class="button-control" style="${styleButtonClose}">${feather.icons.x.toSvg({ width: '1rem', height: '1rem' })}</button>
           </div>
           <div class="pdf-visualizer-controls" style="${styleControls}">
             <div class="navigate-controls">
-              <button id="prev" class="button-control" style="${styleButtonPrev}" disabled>${feather.icons["chevrons-left"].toSvg({ width: 15, height: 15 })}</button>
-              <button id="next" class="button-control" style="${styleButtonNext}" disabled>${feather.icons["chevrons-right"].toSvg({ width: 15, height: 15 })}</button>
+              <button id="prev" class="button-control" style="${styleButtonPrev}" disabled>${feather.icons["chevrons-left"].toSvg({ width: '1rem', height: '1rem' })}</button>
+              <button id="next" class="button-control" style="${styleButtonNext}" disabled>${feather.icons["chevrons-right"].toSvg({ width: '1rem', height: '1rem' })}</button>
               <span id="page-info" style="${styleTextPageNumber}">${this.titlePageNumber}: <span id="page_num"></span> / <span id="page_count"></span></span>
             </div>
             <div class="zoom-controls">
-              <button id="zoomOut" class="button-control" style="${styleButtonZoomOut}" disabled>${feather.icons.minus.toSvg({ width: 15, height: 15 })}</button>
+              <button id="zoomOut" class="button-control" style="${styleButtonZoomOut}" disabled>${feather.icons.minus.toSvg({ width: '1rem', height: '1rem' })}</button>
               <span id="zoom-info" style="${stylTextZoomInfo}">100%</span>
-              <button id="zoomIn" class="button-control" style="${styleButtonZoomIn}" disabled>${feather.icons.plus.toSvg({ width: 15, height: 15 })}</button>
-              <button id="download" class="button-control" style="${styleButtonDownload}" ${this.isDownloadingOnClick ? '' : 'disabled'}>${feather.icons.download.toSvg({ width: 15, height: 15 })}</button>
-              <button id="print" class="button-control" style="${styleButtonPrint}" ${this.isPrintingOnClick ? '' : 'disabled'}>${feather.icons.printer.toSvg({ width: 15, height: 15 })}</button>
+              <button id="zoomIn" class="button-control" style="${styleButtonZoomIn}" disabled>${feather.icons.plus.toSvg({ width: '1rem', height: '1rem' })}</button>
+              <button id="download" class="button-control" style="${styleButtonDownload}" ${this.isDownloadingOnClick ? '' : 'disabled'}>${feather.icons.download.toSvg({ width: '1rem', height: '1rem' })}</button>
+              <button id="print" class="button-control" style="${styleButtonPrint}" ${this.isPrintingOnClick ? '' : 'disabled'}>${feather.icons.printer.toSvg({ width: '1rem', height: '1rem' })}</button>
             </div>
           </div>
           <div id="pdf-body" style="${styleBody}">
