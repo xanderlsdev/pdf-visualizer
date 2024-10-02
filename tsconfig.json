@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "target": "ES6",                           // ES6 o la versión de JS que necesites
-    "module": "CommonJS",                           // Usar ES6 modules
+    "module": "ESNext",                           // Usar ES6 modules
     "declaration": true,                       // Generar archivos .d.ts
     "outDir": "./dist",        
     "rootDir": "./src",                // Carpeta de salida para los archivos compilados
@@ -12,7 +12,7 @@
     "checkJs": false                            // Opcional: chequea los tipos en archivos JS
   },
   "include": [
-    "src/**/*.js"                              // Incluye archivos JavaScript también
+    "src/**/*"                              // Incluye archivos JavaScript también
   ],
   "exclude": [
     "node_modules"
