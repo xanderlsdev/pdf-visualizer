@@ -14,7 +14,5 @@
   "include": [
     "src/**/*"                                // Incluir todos los archivos de entrada
   ],
-  "exclude": [
-    "node_modules"                            // Excluir carpetas y archivos de entrada
-  ]
+  "exclude": ["node_modules", "dist/js"]
 }

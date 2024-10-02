@@ -10,5 +10,5 @@ test/
 docs/
 src/
 example/
-rollup.config.mjs
+rollup.config.js
 tsconfig.json
