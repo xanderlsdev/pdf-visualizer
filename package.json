@@ -1,6 +1,6 @@
 {
   "name": "pdf-visualizer",
-  "version": "1.0.18",
+  "version": "1.0.19",
   "description": "A modular PDF viewer that works as a modal in various JavaScript frameworks",
   "main": "dist/index.js",
   "module": "dist/index.js",
