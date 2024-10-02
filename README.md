@@ -5,7 +5,13 @@ A modular PDF visualizer that works as a modal in various JavaScript frameworks.
 ## Installation
 
 ```bash
+// npm install pdf-visualizer
 npm install pdf-visualizer
+```
+
+```bash
+// cdn link
+<script src="https://cdn.jsdelivr.net/npm/pdf-visualizer@latest/dist/index.js"></script>
 ```
 
 ## Usage
@@ -13,6 +19,7 @@ npm install pdf-visualizer
 ### Vanilla JavaScript
 
 ![Examples 1](example/example1.gif)
+
 ```javascript
 import pdfVisualizer from "pdf-visualizer";
 
@@ -20,10 +27,10 @@ import pdfVisualizer from "pdf-visualizer";
 await pdfVisualizer.init({
   url: "https://api.syssoftintegra.com/servicios/syssoft/api/reporte/facturacion/venta/pdf/a4/VT0002",
 });
-
 ```
 
 ![Example 2](example/example2.gif)
+
 ```javascript
 // Create the PDF visualizer with custom styles and events
 await pdfVisualizer.init({
@@ -57,13 +64,17 @@ await pdfVisualizer.init({
   onBeforeOpen: () => {
     console.log("Opening PDF");
   },
-  // Event execute before closing the PDF by not using the function close 
+  // Event execute before closing the PDF by not using the function close
   onBeforeClose: () => {
     console.log("Closing PDF");
   },
   // Event execute after closing the PDF by not using the function close
   onAfterClose: () => {
     console.log("PDF closed");
+  },
+  // Event execute when an error occurs
+  onError: (error) => {
+    console.log("Error al abrir el PDF:", error);
   },
 });
 ```
@@ -100,7 +111,7 @@ await pdfVisualizer.init({
   onBeforeOpen: () => {
     console.log("Opening PDF");
   },
-  // Event execute before closing the PDF by not using the function close 
+  // Event execute before closing the PDF by not using the function close
   onBeforeClose: () => {
     console.log("Closing PDF");
   },
@@ -108,10 +119,28 @@ await pdfVisualizer.init({
   onAfterClose: () => {
     console.log("PDF closed");
   },
+    // Event execute when an error occurs
+  onError: (error) => {
+    console.log("Error al abrir el PDF:", error);
+  },
 });
 
 // Close the PDF visualizer with custom events and example of timeout
 setTimeout(() => {
+  if (pdfVisualizer.isOpen()) {
+    pdfVisualizer.close({
+      onBeforeClose: () => {
+        console.log("Closing 1 PDF");
+      },
+      onAfterClose: () => {
+        console.log("PDF closed 1");
+      },
+    });
+  }
+}, 5000);
+
+// Close the PDF visualizer with custom events
+if (pdfVisualizer.isOpen()) {
   pdfVisualizer.close({
     onBeforeClose: () => {
       console.log("Closing 1 PDF");
@@ -120,17 +149,7 @@ setTimeout(() => {
       console.log("PDF closed 1");
     },
   });
-}, 5000);
-
-// Close the PDF visualizer with custom events
-pdfVisualizer.close({
-  onBeforeClose: () => {
-    console.log("Closing 1 PDF");
-  },
-  onAfterClose: () => {
-    console.log("PDF closed 1");
-  },
-});
+}
 ```
 
 ### Check if the PDF is open or closed
@@ -141,6 +160,40 @@ if (pdfVisualizer.isOpen()) {
 } else {
   console.log("PDF is closed");
 }
+```
+
+### HTML
+
+```html
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Example Pdf Visualizer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/pdf-visualizer@latest/dist/index.js"></script>
+  </head>
+  <body>
+    <div class="flex justify-center items-center h-screen">
+      <button
+        id="btn-pdf-visualizer"
+        class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-opacity-75"
+      >
+        PDF Visualizer
+      </button>
+    </div>
+    <script>
+      document
+        .querySelector("#btn-pdf-visualizer")
+        .addEventListener("click", async () => {
+          await pdfVisualizer.init({
+            url: "https://api.syssoftintegra.com/servicios/syssoft/api/reporte/facturacion/venta/pdf/ticket/VT0002",
+          });
+        });
+    </script>
+  </body>
+</html>
 ```
 
 ### React

@@ -160,11 +160,11 @@ class PDFVisualizer {
       this.modal.innerHTML = `
         <div class="pdf-visualizer-content" style="${styleContent}">
           <div class="pdf-visualizer-header" style="${styleHeader}">
-            <h4 style="${styleTextTitle}">${this.title}</h4>
+            <h5 style="${styleTextTitle}">${this.title}</h5>
             <button id="close-btn-pdf-visualizer" class="button-control" style="${styleButtonClose}">${feather.icons.x.toSvg({ width: 15, height: 15 })}</button>
           </div>
           <div class="pdf-visualizer-controls" style="${styleControls}">
-            <div>
+            <div class="navigate-controls">
               <button id="prev" class="button-control" style="${styleButtonPrev}" disabled>${feather.icons["chevrons-left"].toSvg({ width: 15, height: 15 })}</button>
               <button id="next" class="button-control" style="${styleButtonNext}" disabled>${feather.icons["chevrons-right"].toSvg({ width: 15, height: 15 })}</button>
               <span id="page-info" style="${styleTextPageNumber}">${this.titlePageNumber}: <span id="page_num"></span> / <span id="page_count"></span></span>
