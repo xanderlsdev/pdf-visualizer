@@ -9,3 +9,6 @@ coverage/
 test/
 docs/
 src/
+example/
+rollup.config.mjs
+tsconfig.json
