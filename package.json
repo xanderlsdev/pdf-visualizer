@@ -1,27 +1,28 @@
 {
   "name": "pdf-visualizer",
-  "version": "1.0.6",
+  "version": "1.0.14",
   "description": "A modular PDF viewer that works as a modal in various JavaScript frameworks",
   "main": "dist/index.js",
-  "module": "dist/esm/index.js",
-  "types": "dist/esm/index.d.ts",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
   "type": "module",
   "repository": {
     "type": "git",
     "url": "https://github.com/xanderlsdev/pdf-visualizer"
   },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "copy-css": "npx cpx src/css/*.css dist/css",
+    "build": "tsc && npm run copy-css",
+    "prepare": "npm run build"
+  },
   "exports": {
     ".": {
       "import": {
-        "types": "./dist/esm/index.d.ts",
-        "default": "./dist/esm/index.js"
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
       }
     }
-  },
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "copy-css": "npx cpx src/css/*.css dist/esm/css",
-    "build": "tsc && npm run copy-css"
   },
   "keywords": [
     "\"pdf\"",
@@ -45,8 +46,5 @@
     "rollup-plugin-postcss": "^4.0.2",
     "rollup-plugin-typescript2": "^0.36.0",
     "typescript": "^5.6.2"
-  },
-  "files": [
-    "dist"
-  ]
+  }
 }

@@ -3,7 +3,7 @@
     "target": "ES6",                           // ES6 o la versión de JS que necesites
     "module": "ES6",                           // Usar ES6 modules
     "declaration": true,                       // Generar archivos .d.ts
-    "outDir": "./dist/esm",                        // Carpeta de salida para los archivos compilados
+    "outDir": "./dist",                        // Carpeta de salida para los archivos compilados
     "rootDir": "./src",                // Carpeta de salida para los archivos compilados
     "strict": true,                            // Opcional: estricta verificación de tipos
     "esModuleInterop": true,                   // Permitir interoperabilidad entre ES y CommonJS
