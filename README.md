@@ -9,11 +9,6 @@ A modular PDF visualizer that works as a modal in various JavaScript frameworks.
 npm install pdf-visualizer
 ```
 
-```bash
-// cdn link
-<script src="https://cdn.jsdelivr.net/npm/pdf-visualizer@latest/dist/index.js"></script>
-```
-
 ## Usage
 
 ### Vanilla JavaScript
@@ -160,40 +155,6 @@ if (pdfVisualizer.isOpen()) {
 } else {
   console.log("PDF is closed");
 }
-```
-
-### HTML
-
-```html
-<html>
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Example Pdf Visualizer</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/pdf-visualizer@latest/dist/index.js"></script>
-  </head>
-  <body>
-    <div class="flex justify-center items-center h-screen">
-      <button
-        id="btn-pdf-visualizer"
-        class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-opacity-75"
-      >
-        PDF Visualizer
-      </button>
-    </div>
-    <script>
-      document
-        .querySelector("#btn-pdf-visualizer")
-        .addEventListener("click", async () => {
-          await pdfVisualizer.init({
-            url: "https://api.syssoftintegra.com/servicios/syssoft/api/reporte/facturacion/venta/pdf/ticket/VT0002",
-          });
-        });
-    </script>
-  </body>
-</html>
 ```
 
 ### React

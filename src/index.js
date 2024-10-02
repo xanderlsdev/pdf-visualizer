@@ -1,3 +1,4 @@
+// src/index.js
 import PDFVisualizer from './js/pdfVisualizer';
 
 const pdfVisualizer = new PDFVisualizer();

@@ -61,10 +61,7 @@ class PDFVisualizer {
     this.isClosingOnClickOutside = true;
     this.isDownloadingOnClick = true;
     this.isPrintingOnClick = true;
-    GlobalWorkerOptions.workerSrc = new URL(
-      'pdfjs-dist/build/pdf.worker.min.mjs',
-      import.meta.url,
-    ).toString();
+    GlobalWorkerOptions.workerSrc = new URL("pdfjs-dist/build/pdf.worker.min.mjs",import.meta.url).toString();
   }
 
   /**
@@ -180,7 +177,7 @@ class PDFVisualizer {
           <div id="pdf-body" style="${styleBody}">
             <canvas id="the-canvas"></canvas>
             <div id="preloader">
-              <div class="spinner"></div>
+              <div class="spinner" style="${styleTextLoading}"></div>
               ${this.titleLoading}
             </div>
           </div>
