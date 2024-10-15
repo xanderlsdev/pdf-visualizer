@@ -35,6 +35,7 @@ class PDFVisualizer {
     this.title = 'PDF Visualizer';
     this.titlePageNumber = 'Page';
     this.titleLoading = 'Loading PDF...';
+    this.fileName = 'documento.pdf';
     this.pdfDoc = null;
     this.page = null;
     this.pageNum = 1;
@@ -61,7 +62,7 @@ class PDFVisualizer {
     this.isClosingOnClickOutside = true;
     this.isDownloadingOnClick = true;
     this.isPrintingOnClick = true;
-    GlobalWorkerOptions.workerSrc = new URL("pdfjs-dist/build/pdf.worker.min.mjs",import.meta.url).toString();
+    GlobalWorkerOptions.workerSrc = new URL("pdfjs-dist/build/pdf.worker.min.mjs", import.meta.url).toString();
   }
 
   /**
@@ -73,6 +74,7 @@ class PDFVisualizer {
    * @param {string} [options.title='PDF Visualizer'] - El título del visor de PDF.
    * @param {string} [options.titlePageNumber='Page'] - El texto que se muestra antes del número de página.
    * @param {string} [options.titleLoading='Loading PDF...'] - El mensaje que se muestra durante la carga del PDF.
+   * @param {string} [options.fileName=''] - Nombre del archivo PDF.
    * @param {boolean} [options.isMoveable=true] - Si el modal es movible arrastrando la cabecera.
    * @param {boolean} [options.isClosingOnEscape=true] - Si el modal se puede cerrar con la tecla Escape.
    * @param {boolean} [options.isClosingOnClickOutside=true] - Si el modal se cierra al hacer clic fuera del contenido.
@@ -106,6 +108,7 @@ class PDFVisualizer {
     title = 'PDF Visualizer',
     titlePageNumber = 'Page',
     titleLoading = 'Loading PDF...',
+    fileName,
     isMoveable = true,
     isClosingOnEscape = true,
     isClosingOnClickOutside = true,
@@ -140,6 +143,7 @@ class PDFVisualizer {
       this.title = title;
       this.titlePageNumber = titlePageNumber;
       this.titleLoading = titleLoading;
+      this.fileName = fileName;
       this.isMoveable = isMoveable;
       this.isClosingOnEscape = isClosingOnEscape;
       this.isClosingOnClickOutside = isClosingOnClickOutside;
@@ -362,18 +366,27 @@ class PDFVisualizer {
     // Obtener la página específica
     this.page = await this.pdfDoc.getPage(num);
 
-    // Obtener las dimensiones de la página
-    const viewport = this.page.getViewport({ scale: this.scale });
-    this.canvas.height = viewport.height;
-    this.canvas.width = viewport.width;
+    // Ajustar la escala basada en el DPI del dispositivo
+    const pixelRatio = window.devicePixelRatio || 1;
+    const scaledViewport = this.page.getViewport({ scale: this.scale * pixelRatio });
+
+    // Ajustar las dimensiones del canvas
+    this.canvas.height = scaledViewport.height;
+    this.canvas.width = scaledViewport.width;
+    this.canvas.style.width = `${scaledViewport.width / pixelRatio}px`;
+    this.canvas.style.height = `${scaledViewport.height / pixelRatio}px`;
 
     const renderContext = {
       canvasContext: this.ctx,
-      viewport: viewport
+      viewport: scaledViewport,
+      enableWebGL: true,
+      renderInteractiveForms: true,
     };
 
-    const renderTask = this.page.render(renderContext);
+    // Desactivar el suavizado de imágenes
+    this.ctx.imageSmoothingEnabled = false;
 
+    const renderTask = this.page.render(renderContext);
     await renderTask.promise;
 
     this.pageRendering = false;
@@ -381,7 +394,7 @@ class PDFVisualizer {
       this.renderPage(this.pageNumPending);
       this.pageNumPending = null;
     }
-
+    
     this.container.querySelector('#page_num').textContent = num;
     this.updateUI();
   }
@@ -517,7 +530,7 @@ class PDFVisualizer {
     // Mostrar un indicador de carga
     const printButton = this.container.querySelector('#print');
     const originalContent = printButton.innerHTML;
-    printButton.innerHTML = `${feather.icons.loader.toSvg({ width: 15, height: 15, class: 'animated-spin' })}`;
+    printButton.innerHTML = `${feather.icons.loader.toSvg({ width: '1.378rem', height: '1.378rem', class: 'animated-spin' })}`;
     printButton.disabled = true;
 
     printJS({
@@ -564,12 +577,24 @@ class PDFVisualizer {
 
     try {
       // Mostrar un indicador de carga
-      downloadButton.innerHTML = feather.icons.loader.toSvg({ width: 15, height: 15, class: 'animated-spin' });
+      downloadButton.innerHTML = feather.icons.loader.toSvg({ width: '1.378rem', height: '1.378rem', class: 'animated-spin' });
       downloadButton.disabled = true;
 
       // Fetch el PDF como un blob
       const response = await fetch(this.url);
       const pdfBlob = await response.blob();
+
+      // Obtener el nombre del archivo
+      const contentDisposition = response.headers.get('Content-Disposition');
+
+      let fileName = "";
+      if (this.fileName) {
+        fileName = this.fileName;
+      } else if (contentDisposition) {
+        fileName = contentDisposition.split(';').find(n => n.includes('filename='))?.split('=')[1].replaceAll('"', '');
+      } else {
+        fileName = 'Document.pdf';
+      }
 
       // Crear un objeto URL temporal
       const blobUrl = window.URL.createObjectURL(pdfBlob);
@@ -577,7 +602,7 @@ class PDFVisualizer {
       // Crear un enlace temporal y activar la descarga
       const link = document.createElement('a');
       link.href = blobUrl;
-      link.download = this.getFileNameFromUrl(this.url) || 'documento.pdf';
+      link.download = fileName;
       link.click();
 
       // Limpiar el objeto URL temporal
