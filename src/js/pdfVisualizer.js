@@ -35,7 +35,7 @@ class PDFVisualizer {
     this.title = 'PDF Visualizer';
     this.titlePageNumber = 'Page';
     this.titleLoading = 'Loading PDF...';
-    this.fileName = 'documento.pdf';
+    this.fileName = null;
     this.pdfDoc = null;
     this.page = null;
     this.pageNum = 1;
@@ -62,6 +62,7 @@ class PDFVisualizer {
     this.isClosingOnClickOutside = true;
     this.isDownloadingOnClick = true;
     this.isPrintingOnClick = true;
+    this.pdfUrl = '';
     GlobalWorkerOptions.workerSrc = new URL("pdfjs-dist/build/pdf.worker.min.mjs", import.meta.url).toString();
   }
 
@@ -275,9 +276,9 @@ class PDFVisualizer {
       });
     } catch (error) {
       if (typeof onError === 'function') {
-        onError(error);
+        onError(error.message || 'Error initializing the PDF viewer, please try again.');
       }
-      this.container.querySelector('#preloader').textContent = 'Error al cargar el PDF. Por favor, intente de nuevo.';
+      this.container.querySelector('#preloader').textContent = error.message || 'Error initializing the PDF viewer, please try again.';
     }
   }
 
@@ -339,10 +340,28 @@ class PDFVisualizer {
       this.pageRendering = true;
       this.url = url;
 
+      // Fetch el PDF como un blob
+      const response = await fetch(this.url);
+      const pdfBuffer = await response.arrayBuffer();
+
+      // Obtener el nombre del archivo
+      const contentDisposition = response.headers.get('Content-Disposition');
+
+      if (!this.fileName && contentDisposition) {
+        this.fileName = contentDisposition.split(';').find(n => n.includes('filename='))?.split('=')[1].replaceAll('"', '');
+      } if (!this.fileName) {
+        this.fileName = 'documento.pdf';
+      }
+
       // Cargar el documento PDF
-      const loadingTask = getDocument(this.url);
-      const pdfDoc_ = await loadingTask.promise;
-      this.pdfDoc = pdfDoc_;
+      const loadingTask = getDocument({ data: pdfBuffer });
+      this.pdfDoc = await loadingTask.promise;
+
+      this.pdfDoc.getData().then(arrayBuffer => {
+        // Convertir el ArrayBuffer a un Blob
+        const pdfBlob = new Blob([arrayBuffer], { type: 'application/pdf' });
+        this.pdfUrl = URL.createObjectURL(pdfBlob);
+      });
 
       // Actualizar el número de páginas
       this.container.querySelector('#page_count').textContent = this.pdfDoc.numPages;
@@ -351,7 +370,7 @@ class PDFVisualizer {
       // Renderizar la primera página
       await this.renderPage(this.pageNum);
     } catch (error) {
-      throw new Error(error);
+      throw new Error(error.message || 'Error loading the PDF viewer, please try again.');
     } finally {
       this.pageRendering = false;
     }
@@ -394,7 +413,7 @@ class PDFVisualizer {
       this.renderPage(this.pageNumPending);
       this.pageNumPending = null;
     }
-    
+
     this.container.querySelector('#page_num').textContent = num;
     this.updateUI();
   }
@@ -534,8 +553,9 @@ class PDFVisualizer {
     printButton.disabled = true;
 
     printJS({
-      printable: this.url,
+      printable: this.pdfUrl,
       type: 'pdf',
+      documentTitle: this.fileName,
       showModal: false,
       onLoadingEnd: () => {
         printButton.innerHTML = originalContent;
@@ -580,33 +600,11 @@ class PDFVisualizer {
       downloadButton.innerHTML = feather.icons.loader.toSvg({ width: '1.378rem', height: '1.378rem', class: 'animated-spin' });
       downloadButton.disabled = true;
 
-      // Fetch el PDF como un blob
-      const response = await fetch(this.url);
-      const pdfBlob = await response.blob();
-
-      // Obtener el nombre del archivo
-      const contentDisposition = response.headers.get('Content-Disposition');
-
-      let fileName = "";
-      if (this.fileName) {
-        fileName = this.fileName;
-      } else if (contentDisposition) {
-        fileName = contentDisposition.split(';').find(n => n.includes('filename='))?.split('=')[1].replaceAll('"', '');
-      } else {
-        fileName = 'Document.pdf';
-      }
-
-      // Crear un objeto URL temporal
-      const blobUrl = window.URL.createObjectURL(pdfBlob);
-
       // Crear un enlace temporal y activar la descarga
       const link = document.createElement('a');
-      link.href = blobUrl;
-      link.download = fileName;
+      link.href = this.pdfUrl;
+      link.download = this.fileName;
       link.click();
-
-      // Limpiar el objeto URL temporal
-      window.URL.revokeObjectURL(blobUrl);
     } catch (error) {
       console.error('Error al descargar el PDF:', error);
     } finally {
@@ -741,7 +739,7 @@ class PDFVisualizer {
         onAfterOpen();
       }
     } catch (error) {
-      throw new Error(error);
+      throw new Error(error.message || 'Error opening the PDF viewer, please try again.');
     }
   }
 
@@ -789,6 +787,9 @@ class PDFVisualizer {
       this.startY = 0;
       this.scrollLeft = 0;
       this.scrollTop = 0;
+
+      // Limpiar el objeto URL temporal
+      window.URL.revokeObjectURL(this.pdfUrl);
 
       // Limpiar el canvas
       this.canvas.width = 0
