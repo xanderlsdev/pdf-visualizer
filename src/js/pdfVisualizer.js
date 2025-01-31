@@ -348,7 +348,15 @@ class PDFVisualizer {
       const contentDisposition = response.headers.get('Content-Disposition');
 
       if (!this.fileName && contentDisposition) {
-        this.fileName = contentDisposition.split(';').find(n => n.includes('filename='))?.split('=')[1].replaceAll('"', '');
+        this.fileName = contentDisposition
+          .split(';')
+          .find(n => n.includes('filename=')) // Buscar la parte que contiene el nombre del archivo
+          ?.split('=')[1] // Obtener el valor después del "="
+          .replaceAll('"', '') // Eliminar comillas dobles
+          .replace(/^UTF-8''/i, ''); // Eliminar el prefijo "UTF-8''" si está presente
+
+        // Decodificar el nombre del archivo si está codificado
+        this.fileName = decodeURIComponent(this.fileName);
       } if (!this.fileName) {
         this.fileName = 'documento.pdf';
       }
