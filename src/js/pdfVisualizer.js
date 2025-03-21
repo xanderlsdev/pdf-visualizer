@@ -1,6 +1,6 @@
 // PDFVisualizer.js
 import { getDocument, GlobalWorkerOptions } from "pdfjs-dist";
-import printJS from 'print-js';
+import printJS from './printer';
 import feather from 'feather-icons';
 import '../css/style.css';
 
@@ -30,6 +30,7 @@ class PDFVisualizer {
    */
   constructor() {
     this.url = '';
+    this.headers = {};
     this.modal = null;
     this.container = null;
     this.title = 'PDF Visualizer';
@@ -72,6 +73,7 @@ class PDFVisualizer {
    *
    * @param {Object} options - Opciones para personalizar el visualizador de PDF.
    * @param {string} [options.url] - URL del archivo PDF a cargar.
+   * @param {Object} [options.headers] - Objeto de cabeceras para la petición HTTP.
    * @param {string} [options.title='PDF Visualizer'] - El título del visor de PDF.
    * @param {string} [options.titlePageNumber='Page'] - El texto que se muestra antes del número de página.
    * @param {string} [options.titleLoading='Loading PDF...'] - El mensaje que se muestra durante la carga del PDF.
@@ -106,6 +108,7 @@ class PDFVisualizer {
    */
   async init({
     url,
+    headers,
     title = 'PDF Visualizer',
     titlePageNumber = 'Page',
     titleLoading = 'Loading PDF...',
@@ -140,6 +143,7 @@ class PDFVisualizer {
       // Se evita abrir el PDF dos veces
       if (this.isOpening) return;
 
+      this.headers = headers;
       this.isOpening = true;
       this.title = title;
       this.titlePageNumber = titlePageNumber;
@@ -339,9 +343,12 @@ class PDFVisualizer {
     try {
       this.pageRendering = true;
       this.url = url;
-
+      console.log(this.headers);
       // Fetch el PDF como un blob
-      const response = await fetch(this.url);
+      const response = await fetch(this.url, {
+        method: 'GET',
+        headers: this.headers || {},
+      });
       const pdfBuffer = await response.arrayBuffer();
 
       // Obtener el nombre del archivo
@@ -378,6 +385,7 @@ class PDFVisualizer {
       // Renderizar la primera página
       await this.renderPage(this.pageNum);
     } catch (error) {
+      console.error('Error loading the PDF viewer, please try again.', error);
       throw new Error(error.message || 'Error loading the PDF viewer, please try again.');
     } finally {
       this.pageRendering = false;
@@ -571,7 +579,6 @@ class PDFVisualizer {
         this.isPrinting = false;
       },
       onError: (error) => {
-        console.error('Error al imprimir el PDF:', error);
         printButton.innerHTML = originalContent;
         printButton.disabled = false;
         this.isPrinting = false;

@@ -78,6 +78,9 @@ await pdfVisualizer.init({
 ```javascript
 await pdfVisualizer.init({
   url: "https://api.syssoftintegra.com/servicios/syssoft/api/reporte/facturacion/venta/pdf/ticket/VT0002",
+  headers: {
+    'x-tenant': 'desarrollo',
+  },
   title: "PDF Visualizer",
   titlePageNumber: "Página",
   titleLoading: "Cargando PDF...",

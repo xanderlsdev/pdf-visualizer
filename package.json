@@ -1,6 +1,6 @@
 {
   "name": "pdf-visualizer",
-  "version": "1.0.23",
+  "version": "1.0.24",
   "description": "A modular PDF viewer that works as a modal in various JavaScript frameworks",
   "main": "dist/index.js",
   "module": "dist/index.js",
@@ -12,7 +12,7 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "copy-css": "npx cpx src/css/*.css dist/css",
+    "copy-css": "npx cpx 'src/css/**/*.css' dist/css",
     "build": "tsc && npm run copy-css",
     "prepare": "npm run build"
   },
@@ -34,17 +34,16 @@
   "author": "XanderLs <xanderlsdev@gmail.com>",
   "license": "MIT",
   "dependencies": {
-    "feather-icons": "^4.29.2",
-    "pdfjs-dist": "^4.6.82",
-    "print-js": "^1.6.0"
+    "feather-icons": "4.29.2",
+    "pdfjs-dist": "4.6.82"
   },
   "devDependencies": {
-    "@rollup/plugin-node-resolve": "^15.3.0",
-    "@types/feather-icons": "^4.29.4",
-    "cpx": "^1.5.0",
-    "rollup": "^4.24.0",
-    "rollup-plugin-postcss": "^4.0.2",
-    "rollup-plugin-typescript2": "^0.36.0",
-    "typescript": "^5.6.2"
+    "@rollup/plugin-node-resolve": "15.3.0",
+    "@types/feather-icons": "4.29.4",
+    "cpx": "1.5.0",
+    "rollup": "4.24.0",
+    "rollup-plugin-postcss": "4.0.2",
+    "rollup-plugin-typescript2": "0.36.0",
+    "typescript": "5.6.2"
   }
 }
