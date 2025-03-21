@@ -568,7 +568,7 @@ class PDFVisualizer {
     printButton.innerHTML = `${feather.icons.loader.toSvg({ width: '1.378rem', height: '1.378rem', class: 'animated-spin' })}`;
     printButton.disabled = true;
 
-    printJS({
+    this.printer({
       printable: this.pdfUrl,
       type: 'pdf',
       documentTitle: this.fileName,
@@ -584,6 +584,45 @@ class PDFVisualizer {
         this.isPrinting = false;
       },
     });
+  }
+
+  /**
+   * Initialize the printJS module.
+   * @param {Object|string} args - The printable document or object.
+   * @param {string} [args.printable] - Document source: pdf or image url, html element id or json data object.
+   * @param {string} [args.type='pdf'] - Printable type. Available print options are: pdf, html, image, json and raw-html.
+   * @param {Object} [args.headers] - An object containing custom HTTP headers to be sent with the request. Use this to include any additional headers required for authentication or other purposes.
+   * @param {string} [args.header] - Optional header to be used with HTML, Image or JSON printing.
+   * @param {string} [args.headerStyle='font-weight: 300;'] - Optional header style to be applied to the header text.
+   * @param {number} [args.maxWidth=800] - Max document width in pixels.
+   * @param {string|Array} [args.css] - One or more css files URLs that should be applied to the html being printed.
+   * @param {string} [args.style] - Custom style that should be applied to the html being printed.
+   * @param {boolean} [args.scanStyles=true] - When set to false, the library will not process styles applied to the html being printed.
+   * @param {Array} [args.targetStyle] - Array of styles that you want to be processed.
+   * @param {Array} [args.targetStyles] - Range of styles to be processed.
+   * @param {Array} [args.ignoreElements] - Array of html ids that should be ignored when printing a parent html element.
+   * @param {Array} [args.properties] - Object property names when printing JSON.
+   * @param {string} [args.gridHeaderStyle='font-weight: bold;'] - Optional style for the grid header when printing JSON data.
+   * @param {string} [args.gridStyle='border: 1px solid lightgray; margin-bottom: -1px;'] - Optional style for the grid rows when printing JSON data.
+   * @param {boolean} [args.repeatTableHeader=true] - When set to false, the data table header will show in first page only.
+   * @param {boolean} [args.showModal=false] - Enable this option to show user feedback when retrieving or processing large PDF files.
+   * @param {string} [args.modalMessage='Retrieving Document...'] - Message displayed to users when showModal is set to true.
+   * @param {Function} [args.onLoadingStart] - Function to be executed when PDF is being loaded.
+   * @param {Function} [args.onLoadingEnd] - Function to be executed after PDF has loaded.
+   * @param {string} [args.documentTitle='Document'] - Document title when printing html, image or json.
+   * @param {string} [args.fallbackPrintable] - Alternate pdf document to be opened if the browser is not compatible.
+   * @param {Function} [args.onPdfOpen] - Callback function executed when the pdf is opened in a new tab.
+   * @param {Function} [args.onPrintDialogClose] - Callback function executed once the browser print dialog is closed.
+   * @param {Function} [args.onError] - Callback function to be executed when an error occurs.
+   * @param {boolean} [args.base64=false] - Used when printing PDF documents passed as base64 data.
+   * @param {boolean} [args.honorMarginPadding=true] - Keep or remove padding and margin from elements that are being printed.
+   * @param {boolean} [args.honorColor=false] - Print text in color.
+   * @param {string} [args.font='TimesNewRoman'] - Typeface used when printing HTML or JSON.
+   * @param {string} [args.font_size='12pt'] - Font size used when printing HTML or JSON.
+   * @param {string} [args.imageStyle='width:100%;'] - Custom styles to be applied to each image when printing images.
+   */
+  printer(params) {
+    return printJS(params);
   }
 
   /**
