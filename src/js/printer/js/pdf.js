@@ -3,7 +3,6 @@ import { cleanUp } from './functions';
 
 export default {
   print: async (params, printFrame) => {
-    console.log('params', params);
     // Check if we have base64 data
     if (params.base64) {
       if (params.printable.indexOf(',') !== -1) {

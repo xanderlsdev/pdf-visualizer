@@ -343,7 +343,6 @@ class PDFVisualizer {
     try {
       this.pageRendering = true;
       this.url = url;
-      console.log(this.headers);
       // Fetch el PDF como un blob
       const response = await fetch(this.url, {
         method: 'GET',
